@@ -1,0 +1,52 @@
+// ---------- bool_odd function----------
+FROM bool_odd TO DECLARE
+FROM START to bool_odd
+
+FROM INPUT TO input_value // input_value now contains input
+FROM "0" TO 14
+FROM "1" TO 16
+
+FROM "false" TO OUTPUT
+FROM 23 TO LINE
+
+FROM INPUT to temp_value
+FROM temp_value TO temp_value + 1
+FROM temp_value TO bool_even // give value to bool_even function
+FROM bool_even TO output_even // get output bool_even function
+FROM output_even TO OUTPUT
+
+FROM END TO bool_odd
+// ---------- bool_odd function----------
+
+// ----------bool_even function----------
+FROM bool_even TO DECLARE
+FROM START TO bool_even
+
+FROM INPUT TO input_value // input_value now contains input
+FROM "0" TO
+FROM "1" TO
+
+FROM "true" TO OUTPUT
+FROM ... TO LINE
+
+FROM INPUT TO temp_value
+FROM temp_value TO temp_value + 1
+FROM temp_value TO bool_odd
+FROM bool_odd TO output_odd
+FROM output_odd TO OUTPUT
+
+FROM END TO bool_even
+// ---------- bool_even function----------
+
+// Input
+FROM IN to bool_even_input_call
+FROM IN to bool_odd_input_call
+
+// call functions
+FROM bool_even_input_call TO bool_even
+FROM bool_even TO output_even
+FROM bool_odd_input_call TO bool_odd
+FROM bool_odd TO output_odd
+
+FROM output_even TO OUT
+FROM output_odd TO OUT
