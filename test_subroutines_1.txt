@@ -3,15 +3,15 @@ FROM bool_odd TO DECLARE
 FROM START to bool_odd
 
 FROM INPUT TO input_value // input_value now contains input
-FROM "0" TO 14
-FROM "1" TO 16
+FROM input_value TO input_value_safe
+FROM input_value TO == "0" : 9
+FROM input_value TO == "1" : 12
 
 FROM "false" TO OUTPUT
-FROM 23 TO LINE
+FROM 18 TO LINE
 
-FROM INPUT to temp_value
-FROM temp_value TO temp_value + 1
-FROM temp_value TO bool_even // give value to bool_even function
+FROM input_value_safe TO input_value_safe + 1
+FROM input_value_safe TO bool_even // give value to bool_even function
 FROM bool_even TO output_even // get output bool_even function
 FROM output_even TO OUTPUT
 
@@ -23,15 +23,15 @@ FROM bool_even TO DECLARE
 FROM START TO bool_even
 
 FROM INPUT TO input_value // input_value now contains input
-FROM "0" TO
-FROM "1" TO
+FROM input_value TO input_value_safe
+FROM input_value TO == "0" : 30
+FROM input_value TO == "1" : 33
 
 FROM "true" TO OUTPUT
-FROM ... TO LINE
+FROM 38 TO LINE
 
-FROM INPUT TO temp_value
-FROM temp_value TO temp_value + 1
-FROM temp_value TO bool_odd
+FROM input_value_safe TO input_value_safe + 1
+FROM input_value_safe TO bool_odd
 FROM bool_odd TO output_odd
 FROM output_odd TO OUTPUT
 

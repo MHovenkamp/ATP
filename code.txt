@@ -1,0 +1,5 @@
+FROM 7 TO myVar
+FROM 19 TO myVar
+FROM myVar TO myVar - 1
+FROM myVar TO myVar * 4
+FROM myVar TO OUT
