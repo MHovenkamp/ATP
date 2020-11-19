@@ -2,13 +2,13 @@ FROM sommig TO DECLARE
 FROM START TO sommig
 FROM INPUT TO n
 FROM 0 TO result
-// start while loop
-FROM n TO < 1 : 12 // end loop
-FROM n TO >= 1 : 8 // start loop
+
+FROM n TO < 1 : 12 
+FROM n TO >= 1 : 8 
 FROM n TO LINE
 FROM result TO result - n
 FROM n TO n + 1
-FROM 6 TO LINE //end loop, restart
+FROM 6 TO LINE 
 
 FROM result TO OUT 
 

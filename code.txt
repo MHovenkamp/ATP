@@ -1,5 +1,15 @@
-FROM 7 TO myVar
-FROM 19 TO myVar
-FROM myVar TO myVar - 1
-FROM myVar TO myVar * 4
-FROM myVar TO OUT
+FROM sommig TO DECLARE
+FROM START TO sommig
+FROM INPUT TO n
+FROM 0 TO result
+
+FROM n TO < 1 : 12 
+FROM n TO >= 1 : 8 
+FROM n TO LINE
+FROM result TO result - n
+FROM n TO n + 1
+FROM 6 TO LINE 
+
+FROM result TO OUT 
+
+FROM END TO sommig
