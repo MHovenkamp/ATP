@@ -1,5 +1,6 @@
 import interpreter
-# import parser
+import parser
+import enums
 
 def main():
     inter = interpreter.Interpreter("code.txt")

@@ -1,15 +1,2 @@
-FROM sommig TO DECLARE
-FROM START TO sommig
-FROM INPUT TO n
-FROM 0 TO result
-
-FROM n TO < 1 : 12 
-FROM n TO >= 1 : 8 
-FROM n TO LINE
-FROM result TO result - n
-FROM n TO n + 1
-FROM 6 TO LINE 
-
-FROM result TO OUT 
-
-FROM END TO sommig
+FROM 19 TO var
+FROM var TO var - 1
