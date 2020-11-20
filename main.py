@@ -1,15 +1,14 @@
 import interpreter
-import parser
+# import parser
 import enums
 
 def main():
-    inter = interpreter.Interpreter("code.txt")
-    lexed = inter.lexen()
+    lexed = interpreter.lexen("code.txt")
     print("------lexed code-----")
     for value in lexed:
         print(value)
     print("---------------------")
-    parse = parser.Parser(lexed, enums.token_types)
-    parse.parse(lexed)
+    # parse = parser.Parser(lexed, enums.token_types)
+    # parse.parse(lexed)
     
 main()
