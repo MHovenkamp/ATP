@@ -8,6 +8,7 @@ lit_types = TypeVar('lite_types', int, str)
 class Node(object):
     def __init__(self, value : lit_types, token_type : enums.token_types, node_type : enums.node_types=enums.node_types.BASE):
         self.value = value
+        self.token_type = token_type
         self.node_type = node_type
 
     def __str__(self):
@@ -41,8 +42,9 @@ class MathNode(Node):
         self.rhs = rhs
     
     def __str__(self):
-        return 'MathNode({value}, {rhs})'.format(
+        return 'MathNode({value}, {token_type} ,{rhs})'.format(
             value = self.value.__repr__(),
+            token_type = self.token_type,
             rhs = self.rhs
         )
     def __repr__(self):
