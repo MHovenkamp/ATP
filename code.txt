@@ -1,2 +1,4 @@
-FROM 19 TO var
-FROM var TO var - 1
+FROM 19 TO test_var 
+FROM 18 TO sub
+FROM test_var TO test_var - 1 
+FROM test_var TO test_var - sub
