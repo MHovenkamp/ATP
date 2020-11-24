@@ -1,3 +1,1 @@
-FROM 19 TO test_var 
-FROM test_var TO test_var - 1 
-FROM test_var TO OUT
+FROM "Het lukte yeah!" TO OUT

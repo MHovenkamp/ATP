@@ -78,5 +78,28 @@ def lexen(code_file_name):
     code = open(code_file_name, "r")
     code_text = code.read()
     seperate_words = code_text.split()
+    seperate_words = findStrings(seperate_words)
     tokens = lexCreateTokens(seperate_words)
     return tokens
+
+def findStrings(word_list : List[str], string :str="", state="START"):
+    if len(word_list) == 0:
+        return word_list
+    head, *tail = word_list
+    if state=="START":
+        if "\"" in head:
+            state = "BEGIN"
+            string = "" + head
+            return [] + findStrings(tail, string, state)
+        else:
+            return [head] + findStrings(tail, string, state)
+    elif state=="BEGIN":
+        if "\"" not in head:
+            string = string + " " + head
+            return findStrings(tail, string, state)
+        else:
+            state = "START"
+            string = string + " " + head
+            return [string] + findStrings(tail, string, state)
+    return findStrings(tail, string, state)
+    

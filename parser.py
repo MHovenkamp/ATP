@@ -30,7 +30,7 @@ class VariableNode(Node):
         self.variable_name = variable_name
 
     def __str__(self):
-        return 'VariableNode({variable_name},{value})'.format(
+        return '{variable_name}={value}'.format(
             value = self.value.__repr__(),
             variable_name = self.variable_name
         )
@@ -107,16 +107,9 @@ class Parser(object):
                                 print("cant assign empty var to var")
                             if len(temp) == 1:
                                 var = VariableNode(found_line[3].value, temp[0], found_line[3].token_type, enums.node_types.VAR)
-                                temp2 = self.findAndReturn(found_vars, var.variable_name)
-                                if len(temp2) == 0:
-                                    found_vars.append(var)
-                                    tree.append(var)
-                                elif len(temp2) == 1:
-                                    # change var object to new value and re-ad to list of vars
-                                    temp2[0].value = Node(found_line[1].value, found_line[1].token_type)
-                                    tree.append(temp[0])
-                                else: 
-                                    print("var has multiple values")
+                                tree.append(var)
+                            else: 
+                                print("var has multiple values")
 
                 elif length_line == 6:
                     # check for math
