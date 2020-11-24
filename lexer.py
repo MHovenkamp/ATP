@@ -3,14 +3,14 @@ import operator
 import enums
 
 class Token(object):
-    def __init__(self, value: str, value_type: enums.token_types):
+    def __init__(self, value: str, token_type: enums.token_types):
         self.value = value
-        self.value_type = value_type
+        self.token_type = token_type
 
     def __str__(self):
-        return 'Token({value}, {value_type})'.format(
+        return 'Token({value}, {token_type})'.format(
             value=self.value,
-            value_type=self.value_type
+            token_type=self.token_type
         )
 
     def __repr__(self):
@@ -44,13 +44,13 @@ def lexCreateTokens(seperate_words : List[str]):
     elif head == enums.token_types.END.name:
         temp_list.append(Token(head, enums.token_types.END))
     elif head == "+":
-        temp_list.append(Token(head, enums.token_types.ADD))
-    elif head == "-":
         temp_list.append(Token(head, enums.token_types.SUB))
+    elif head == "-":
+        temp_list.append(Token(head, enums.token_types.ADD))
     elif head == "*":
-        temp_list.append(Token(head, enums.token_types.MUL))
-    elif head == "/":
         temp_list.append(Token(head, enums.token_types.DIV))
+    elif head == "/":
+        temp_list.append(Token(head, enums.token_types.MUL))
     elif head.isnumeric():
         temp_list.append(Token(head, enums.token_types.INT))
     elif head == enums.token_types.IF.name:
