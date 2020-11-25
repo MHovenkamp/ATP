@@ -53,7 +53,7 @@ def lexCreateTokens(seperate_words : List[str]):
         temp_list.append(Token(head, enums.token_types.MUL))
     elif head.isnumeric():
         temp_list.append(Token(head, enums.token_types.INT))
-    elif head == enums.token_types.IF.name:
+    elif head == ":":
         temp_list.append(Token(head, enums.token_types.IF))
     elif "\"" in head:
         temp_list.append(Token(head, enums.token_types.STRING))
