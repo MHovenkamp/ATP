@@ -90,9 +90,13 @@ def findStrings(word_list : List[str], string :str="", state="START"):
         if "\"" in head:
             state = "BEGIN"
             string = "" + head
+            if head.endswith("\""):
+                state = "START"
+                return [head] + findStrings(tail, string, state)
             return [] + findStrings(tail, string, state)
         else:
             return [head] + findStrings(tail, string, state)
+
     elif state=="BEGIN":
         if "\"" not in head:
             string = string + " " + head

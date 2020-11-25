@@ -305,21 +305,20 @@ class Visitor(object):
         elif node.token_type == enums.token_types.NOTEQUAL:
             function = lambda x,y: True if x != y else False
 
-        items = [node.value, node.condition]
-        if node.value.token_type == enums.token_types.STRING and node.condition.token_type == enums.token_types.STRING:
+        items = [node.value.visit(), node.condition.visit()]
+        if not items[0].isnumeric() and not items[1].isnumeric():
             if (node.token_type == enums.token_types.EQUAL or
                 node.token_type == enums.token_types.NOTEQUAL):
                 result = functools.reduce(function, items)
                 print(result)
                 return result
-        if node.value.token_type == enums.token_types.INT and node.condition.token_type == enums.token_types.INT:
+        else:
             items = list(map(lambda x: int(x) if x.isnumeric() else x, items))
             result = functools.reduce(function, items)
-            print(result)
             return result
 
     def visitIF(self, node : IfNode):
         if node.condition.visit() == True:
-            node.value.value = Node(node.new_value, node.line_nr, node.value.as_integer_ratiotoken_type)
+            node.value.value = Node(node.new_value, node.line_nr, node.new_value.token_type)
 
             
