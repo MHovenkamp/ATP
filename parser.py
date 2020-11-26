@@ -106,14 +106,31 @@ class IfNode(Node):
         visitor = Visitor()
         return visitor.visitIF(self)
 
+#TODO
+# dif_nodes = TypeVar(Node, VariableNode, MathNode, IfNode)
+# class FunctionNode(Node):
+#     # value = function name
+#     def __init__(self, value : Node, line_nr : int, commands: List[dif_nodes], output : Node, token_type : enums.token_types=enums.token_types.FUNCTION, node_type : enums.node_types.FUNCTION):
+#         super().__init__(value, line_nr, token_type, node_type)
+#         self.commands = commands
+    
+#     def __str__(self) -> str:
+#         return 'function: {value}, body: {commands}'.forma(
+#             value = self.value,
+#             commands = self.commands
+#         )
+
+#     def __repr__(self) -> str:
+#         return self.__str__()
+
 class Parser(object):
-    def __init__(self, tokens : List[lexer.Token], types : enums.token_types = None):
-        self.tokens = tokens
-        self.token_index = 0
-        self.state = enums.parser_states.IDLE
+    def __init__(self):
+        pass
 
     list_types = TypeVar(Node, VariableNode, MathNode)
-    def parse(self, token_list : List[lexer.Token], line_nr : int = 1, found_vars : List[VariableNode]=[], tree : List[list_types] = [], state :enums.parser_states =enums.parser_states.IDLE) -> List[list_types]:
+    def parse(  self, token_list : List[lexer.Token], line_nr : int = 1, found_vars : List[VariableNode]=[], found_func_names : List[str]=[], 
+                tree : List[list_types] = [], state :enums.parser_states =enums.parser_states.SINGLE) -> List[list_types]:
+
         if len( token_list ) == 0:
             return tree
 
@@ -121,7 +138,7 @@ class Parser(object):
 
         value = head.value
         token_type = head.token_type
-        if state == enums.parser_states.IDLE:
+        if state == enums.parser_states.SINGLE:
             if token_type == enums.token_types.FROM:
                 found_line = [head] + self.getLine(tail)
                 # based on length of line start assigning
@@ -129,75 +146,34 @@ class Parser(object):
                 if found_line[0].token_type != enums.token_types.FROM and found_line[3].token_type != enums.token_types.TO:
                     print("This print later throws an error, invalid syntax")
                 if length_line == 4:
-                    # check if y variable is an assignable value
+                    #check for function decleration 
+                    if found_line[3].token_type == enums.token_types.DECLARE:
+                        check_var = self.findAndReturn(found_vars, found_line[4].value)
+                        #TODO finish function decleration
+
+                    #check for variable assignement
                     if found_line[3].token_type == enums.token_types.VAR or found_line[3].token_type == enums.token_types.OUT:
-                        # check if y var already exists
-                        check_exist_y = self.findAndReturn(found_vars, found_line[3].value)
-                        if len(check_exist_y) == 0:
-                            #variable does not exist yet
-                            #check if var x already exists
-                            if found_line[1].token_type == enums.token_types.VAR:
-                                check_exist_x = self.findAndReturn(found_vars, found_line[1].value)
-                                if len(check_exist_x) == 1:
-                                    var = VariableNode(found_line[3].value, check_exist_x[0], line_nr, enums.token_types.VAR)
-                                else:
-                                    print("error trying to assign var that does not exist, or double var")
-                            elif found_line[1].token_type == enums.token_types.INT:
-                                var = VariableNode(found_line[3].value, Node(found_line[1].value, line_nr, enums.token_types.INT), line_nr, enums.token_types.VAR)
-                            elif found_line[1].token_type == enums.token_types.STRING:
-                                var = VariableNode(found_line[3].value, Node(found_line[1].value, line_nr, enums.token_types.STRING), line_nr, enums.token_types.VAR)
-                        elif len(check_exist_y) == 1:
-                            #variable does exist
-                            #check if var x already exists
-                            if found_line[1].token_type == enums.token_types.VAR:
-                                check_exist_x = self.findAndReturn(found_vars, found_line[1].value)
-                                if len(check_exist_x) == 1:
-                                    check_exist_y[0].value = check_exist_x[0]
-                                    check_exist_y[0].line_nr = line_nr
-                                    var = check_exist_y[0]
-                                else:
-                                    print("error trying to assign var that does not exist, or double var")
-                            elif found_line[1].token_type == enums.token_types.INT:
-                                check_exist_y[0].value = Node(found_line[1].value, line_nr, enums.token_types.INT)
-                                check_exist_y[0].line_nr = line_nr
-                                var = check_exist_y[0]
-                            elif found_line[1].token_type == enums.token_types.STRING:
-                                check_exist_y[0].value = Node(found_line[1].value, line_nr, enums.token_types.STRING)
-                                check_exist_y[0].line_nr = line_nr
-                                var = check_exist_y[0]
-                        else:
-                            print("hier komt ene error")
+                        var = self.getVarNode(found_line, found_vars, line_nr)
 
                     if found_line[3].token_type == enums.token_types.OUT:
                         var.token_type = enums.token_types.OUT
                     if var.token_type != enums.token_types.OUT:
                         found_vars.append(var)
                     tree.append(var)
+
                 elif length_line == 6:
+
                     # check for math
                     if found_line[1].token_type == enums.token_types.VAR and found_line[3].token_type == enums.token_types.VAR:
                         if (found_line[4].token_type is enums.token_types.ADD or
                             found_line[4].token_type is enums.token_types.MUL or
                             found_line[4].token_type is enums.token_types.SUB or
                             found_line[4].token_type is enums.token_types.DIV):
-                                # comfirm its the same var we are changing
-                                if found_line[1].value == found_line[3].value:
-                                    if (found_line[5].token_type is enums.token_types.INT):
-                                        var = self.findAndReturn(found_vars, found_line[1].value)
-                                        nmbr = Node(found_line[5].value, line_nr, found_line[5].token_type, enums.node_types.BASE)
-                                        if len(var) == 0:
-                                            print("Math on unknown variable")
-                                        if len(var) == 1:
-                                            math = MathNode(var[0], nmbr, line_nr, found_line[4].token_type)
-                                            tree.append(math)
-                                    if (found_line[5].token_type is enums.token_types.VAR):
-                                        var1 = self.findAndReturn(found_vars, found_line[1].value)
-                                        var2 = self.findAndReturn(found_vars, found_line[5].value)
-                                        if len(var1) == 0 or len(var2) == 0:
-                                            print("Math on unknown variable")
-                                        if len(var1) == 1 and len(var2) == 1:
-                                            math = MathNode(var1[0], var2[0], line_nr, found_line[4].token_type)
-                                            tree.append(math)
+
+                                var = self.getMathNode(found_line, found_vars, line_nr)
+                                print("math: ", var)
+                                tree.append(var)
+
                 elif length_line == 7:
                     #check for if
                     if found_line[1].token_type == enums.token_types.VAR and found_line[5].token_type == enums.token_types.IF:
@@ -207,40 +183,101 @@ class Parser(object):
                             found_line[3].token_type == enums.token_types.SMALLER or
                             found_line[3].token_type == enums.token_types.EQUALGREATER or
                             found_line[3].token_type == enums.token_types.EQUALSMALLER):
-                                check_exist_value = self.findAndReturn(found_vars, found_line[1].value)
-
-                                if len(check_exist_value) == 0 or len(check_exist_value) > 1:
-                                    print("value to if on does not exist")
-                                else:
-                                    if found_line[4].token_type == enums.token_types.VAR:
-                                        check_exist_condition = self.findAndReturn(found_vars, found_line[4].value)
-                                        if check_exist_condition is None:
-                                            print("error condition does not exist")
-                                        else:
-                                            condition = ConditionNode(check_exist_value[0], check_exist_condition[0], line_nr, found_line[3].token_type)
-                                    elif found_line[4].token_type == enums.token_types.INT:
-                                        condition = ConditionNode(check_exist_value[0], Node(found_line[4].value, line_nr, enums.token_types.INT), line_nr, found_line[3].token_type)
-                                    elif found_line[4].token_type == enums.token_types.STRING:
-                                        condition = ConditionNode(check_exist_value[0], Node(found_line[4].value, line_nr, enums.token_types.STRING), line_nr, found_line[3].token_type)
-
-                                    if found_line[6].token_type == enums.token_types.VAR:
-                                        check_exist_new_value = self.findAndReturn(found_vars, found_line[6].value)
-                                        if check_exist_new_value is None:
-                                            print("error new value does not exist")
-                                        else:
-                                            new_value = check_exist_new_value[0]
-                                    elif found_line[6].token_type == enums.token_types.INT:
-                                        new_value = Node(found_line[6].value, line_nr, enums.token_types.INT)
-                                    elif found_line[6].token_type == enums.token_types.STRING:
-                                        new_value = Node(found_line[6].value, line_nr, enums.token_types.STRING)
-                                    
-                                    var = IfNode(check_exist_value[0], condition, new_value, line_nr, enums.token_types.IF)
+                                    var = self.getIfNode(found_line, found_vars, line_nr)
                                     tree.append(var)
                                 
 
                 remaining_tail = tail[length_line-1:]
         return self.parse(remaining_tail, line_nr+1, found_vars, tree)
-                
+
+    def getVarNode(self, found_line : List[lexer.Token], found_vars : List[VariableNode], line_nr : int) -> VariableNode:
+        # check if y var already exists
+        check_exist_y = self.findAndReturn(found_vars, found_line[3].value)
+        if len(check_exist_y) == 0:
+            #variable does not exist yet
+            #check if var x already exists
+            if found_line[1].token_type == enums.token_types.VAR:
+                check_exist_x = self.findAndReturn(found_vars, found_line[1].value)
+                if len(check_exist_x) == 1:
+                    var = VariableNode(found_line[3].value, check_exist_x[0], line_nr, enums.token_types.VAR)
+                else:
+                    print("error trying to assign var that does not exist, or double var")
+            elif found_line[1].token_type == enums.token_types.INT:
+                var = VariableNode(found_line[3].value, Node(found_line[1].value, line_nr, enums.token_types.INT), line_nr, enums.token_types.VAR)
+            elif found_line[1].token_type == enums.token_types.STRING:
+                var = VariableNode(found_line[3].value, Node(found_line[1].value, line_nr, enums.token_types.STRING), line_nr, enums.token_types.VAR)
+        elif len(check_exist_y) == 1:
+            #variable does exist
+            #check if var x already exists
+            if found_line[1].token_type == enums.token_types.VAR:
+                check_exist_x = self.findAndReturn(found_vars, found_line[1].value)
+                if len(check_exist_x) == 1:
+                    check_exist_y[0].value = check_exist_x[0]
+                    check_exist_y[0].line_nr = line_nr
+                    var = check_exist_y[0]
+                else:
+                    print("error trying to assign var that does not exist, or double var")
+            elif found_line[1].token_type == enums.token_types.INT:
+                check_exist_y[0].value = Node(found_line[1].value, line_nr, enums.token_types.INT)
+                check_exist_y[0].line_nr = line_nr
+                var = check_exist_y[0]
+            elif found_line[1].token_type == enums.token_types.STRING:
+                check_exist_y[0].value = Node(found_line[1].value, line_nr, enums.token_types.STRING)
+                check_exist_y[0].line_nr = line_nr
+                var = check_exist_y[0]
+        else:
+            print("hier komt ene error")
+        return var
+
+    def getMathNode(self, found_line : List[lexer.Token], found_vars : List[VariableNode], line_nr : int) -> MathNode:
+        if found_line[1].value == found_line[3].value:
+            if (found_line[5].token_type is enums.token_types.INT):
+                var = self.findAndReturn(found_vars, found_line[1].value)
+                nmbr = Node(found_line[5].value, line_nr, found_line[5].token_type, enums.node_types.BASE)
+                if len(var) == 0:
+                    print("Math on unknown variable")
+                if len(var) == 1:
+                    math = MathNode(var[0], nmbr, line_nr, found_line[4].token_type)
+                    return math
+            if (found_line[5].token_type is enums.token_types.VAR):
+                var1 = self.findAndReturn(found_vars, found_line[1].value)
+                var2 = self.findAndReturn(found_vars, found_line[5].value)
+                if len(var1) == 0 or len(var2) == 0:
+                    print("Math on unknown variable")
+                if len(var1) == 1 and len(var2) == 1:
+                    math = MathNode(var1[0], var2[0], line_nr, found_line[4].token_type)
+                    return MathNode
+
+    def getIfNode(self, found_line : List[lexer.Token], found_vars : List[VariableNode], line_nr : int):
+        check_exist_value = self.findAndReturn(found_vars, found_line[1].value)
+        if len(check_exist_value) == 0 or len(check_exist_value) > 1:
+            print("value to if on does not exist")
+        else:
+            if found_line[4].token_type == enums.token_types.VAR:
+                check_exist_condition = self.findAndReturn(found_vars, found_line[4].value)
+                if check_exist_condition is None:
+                    print("error condition does not exist")
+                else:
+                    condition = ConditionNode(check_exist_value[0], check_exist_condition[0], line_nr, found_line[3].token_type)
+            elif found_line[4].token_type == enums.token_types.INT:
+                condition = ConditionNode(check_exist_value[0], Node(found_line[4].value, line_nr, enums.token_types.INT), line_nr, found_line[3].token_type)
+            elif found_line[4].token_type == enums.token_types.STRING:
+                condition = ConditionNode(check_exist_value[0], Node(found_line[4].value, line_nr, enums.token_types.STRING), line_nr, found_line[3].token_type)
+
+            if found_line[6].token_type == enums.token_types.VAR:
+                check_exist_new_value = self.findAndReturn(found_vars, found_line[6].value)
+                if check_exist_new_value is None:
+                    print("error new value does not exist")
+                else:
+                    new_value = check_exist_new_value[0]
+            elif found_line[6].token_type == enums.token_types.INT:
+                new_value = Node(found_line[6].value, line_nr, enums.token_types.INT)
+            elif found_line[6].token_type == enums.token_types.STRING:
+                new_value = Node(found_line[6].value, line_nr, enums.token_types.STRING)
+            
+            var = IfNode(check_exist_value[0], condition, new_value, line_nr, enums.token_types.IF)
+        return var
+
     def getLine(self, tokens : List[lexer.Token], line : List[lexer.Token]=[]) -> List[lexer.Token]:
         
         if len(tokens) == 0:
@@ -297,9 +334,9 @@ class Visitor(object):
             function = lambda x, y: x//y
         
         if copy_node.rhs.token_type == enums.token_types.VAR:
-            items = [copy_node.value.visit(), copy_node.rhs.value.visit()]
+            items = [copy_node.value.value.visit(), copy_node.rhs.value.visit()]
         else:
-            items = [copy_node.value.visit(), copy_node.rhs.visit()]
+            items = [copy_node.value.value.visit(), copy_node.rhs.visit()]
         items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
         copy_node.value.line_nr = node.line_nr
         copy_node.value.value = Node(functools.reduce(function, items), node.line_nr, enums.token_types.INT) #HOGERE ORDE FUNCTIE
@@ -320,7 +357,7 @@ class Visitor(object):
         elif copy_node.token_type == enums.token_types.NOTEQUAL:
             function = lambda x,y: True if x != y else False
 
-        items = [copy_node.value.value.visit(), copy_node.condition.value.visit()]
+        items = [str(copy_node.value.value.visit()), str(copy_node.condition.visit())]
         if not items[0].isnumeric() and not items[1].isnumeric():
             if (copy_node.token_type == enums.token_types.EQUAL or
                 copy_node.token_type == enums.token_types.NOTEQUAL):
@@ -337,5 +374,3 @@ class Visitor(object):
         if copy_node.condition.visit() == True:
             copy_node.value.value = Node(node.new_value, node.line_nr, node.new_value.token_type)
         return copy_node
-
-            

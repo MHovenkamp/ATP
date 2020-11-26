@@ -26,9 +26,11 @@ class token_types(Enum):
     NOTEQUAL = "NOTEQUAL"
     DIV = "DIV"
     IF = "IF"
+    FUNCTION = "FUNCTION"
 
 class parser_states(Enum):
-    IDLE = "IDLE"
+    SINGLE = "SINGLE"
+    FUNCTION = "FUNCTION"
 
 class node_types(Enum):
     BASE = "BASE"
@@ -36,3 +38,4 @@ class node_types(Enum):
     VAR = "VAR"
     IF = "IF"
     CONDITION = "CONDITION"
+    FUNCTION = "FUNTION"
