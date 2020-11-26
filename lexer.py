@@ -7,16 +7,16 @@ class Token(object):
         self.value = value
         self.token_type = token_type
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Token({value}, {token_type})'.format(
             value=self.value,
             token_type=self.token_type
         )
 
-    def __repr__(self):
+    def __repr__(self) ->str:
         return self.__str__()
 
-def lexCreateTokens(seperate_words : List[str]):
+def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
     if len(seperate_words) == 0:
         return []
     head, *tail = seperate_words
@@ -74,7 +74,7 @@ def lexCreateTokens(seperate_words : List[str]):
 
     return temp_list + lexCreateTokens(tail)
 
-def lexen(code_file_name):
+def lexen(code_file_name) -> List[Token]:
     code = open(code_file_name, "r")
     code_text = code.read()
     seperate_words = code_text.split()
@@ -82,7 +82,7 @@ def lexen(code_file_name):
     tokens = lexCreateTokens(seperate_words)
     return tokens
 
-def findStrings(word_list : List[str], string :str="", state="START"):
+def findStrings(word_list : List[str], string :str="", state="START") -> List[str]:
     if len(word_list) == 0:
         return word_list
     head, *tail = word_list

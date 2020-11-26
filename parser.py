@@ -1,6 +1,7 @@
 from typing import List, TypeVar
 import functools
 import operator
+import copy
 
 import enums
 import lexer
@@ -18,10 +19,10 @@ class Node(object):
             value=self.value
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self):
+    def visit(self) -> lit_types:
         visitor = Visitor()
         return visitor.visitNode(self)
 
@@ -30,17 +31,17 @@ class VariableNode(Node):
         super().__init__(value, line_nr, token_type, node_type)
         self.variable_name = variable_name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '[{line_nr}] {variable_name}={value}'.format(
             line_nr = self.line_nr,
             value = self.value.__repr__(),
             variable_name = self.variable_name
         )
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self):
+    def visit(self) -> Node:
         visitor = Visitor()
         return visitor.visitVariable(self)
 
@@ -51,17 +52,17 @@ class MathNode(Node):
         super().__init__(value, line_nr, token_type, node_type)
         self.rhs = rhs
     
-    def __str__(self):
+    def __str__(self) -> str:
         return '[{line_nr}] MathNode( {value}, {token_type} ,{rhs})'.format(
             line_nr = self.line_nr,
             value = self.value.__repr__(),
             token_type = self.token_type,
             rhs = self.rhs
         )
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self):
+    def visit(self) -> Node:
         visitor = Visitor()
         return visitor.visitMath(self)
 
@@ -70,17 +71,17 @@ class ConditionNode(Node):
         super().__init__(value, line_nr, token_type, node_type)
         self.condition = condition
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '({value} {token_type}, {condition})'.format(
             value = self.value.__repr__(),
             token_type = self.token_type,
             condition = self.condition.__repr__()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self):
+    def visit(self) -> Node:
         visitor = Visitor()
         return visitor.visitCondition(self)
 
@@ -90,7 +91,7 @@ class IfNode(Node):
         self.condition = condition
         self.new_value = new_value
     
-    def __str__(self):
+    def __str__(self) -> str:
         return '[{line_nr}] IfNode({value}, condition: {condition}, -> {new_value})'.format(
             line_nr = self.line_nr,
             value = self.value.__repr__(),
@@ -98,10 +99,10 @@ class IfNode(Node):
             new_value = self.new_value
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self):
+    def visit(self) -> Node:
         visitor = Visitor()
         return visitor.visitIF(self)
 
@@ -112,7 +113,7 @@ class Parser(object):
         self.state = enums.parser_states.IDLE
 
     list_types = TypeVar(Node, VariableNode, MathNode)
-    def parse(self, token_list : List[lexer.Token], line_nr : int = 1, found_vars : List[VariableNode]=[], tree : List[list_types] = []):
+    def parse(self, token_list : List[lexer.Token], line_nr : int = 1, found_vars : List[VariableNode]=[], tree : List[list_types] = [], state :enums.parser_states =enums.parser_states.IDLE) -> List[list_types]:
         if len( token_list ) == 0:
             return tree
 
@@ -120,7 +121,7 @@ class Parser(object):
 
         value = head.value
         token_type = head.token_type
-        if self.state == enums.parser_states.IDLE:
+        if state == enums.parser_states.IDLE:
             if token_type == enums.token_types.FROM:
                 found_line = [head] + self.getLine(tail)
                 # based on length of line start assigning
@@ -240,7 +241,7 @@ class Parser(object):
                 remaining_tail = tail[length_line-1:]
         return self.parse(remaining_tail, line_nr+1, found_vars, tree)
                 
-    def getLine(self, tokens : List[lexer.Token], line : List[lexer.Token]=[]):
+    def getLine(self, tokens : List[lexer.Token], line : List[lexer.Token]=[]) -> List[lexer.Token]:
         
         if len(tokens) == 0:
             return []
@@ -249,7 +250,7 @@ class Parser(object):
             return [head] + self.getLine(tail)
         return []
 
-    def findAndReturn(self,  search_area : List[VariableNode], value_to_find : str ):
+    def findAndReturn(self,  search_area : List[VariableNode], value_to_find : str ) -> List[VariableNode]:
         if len(search_area) == 0:
             return []
         head, *tail = search_area
@@ -260,65 +261,81 @@ class Parser(object):
 class Visitor(object):
     def __init__(self):
         pass
+    
+    node_types = TypeVar(Node, VariableNode, MathNode, ConditionNode, IfNode)
+    def visitAl(self, node_list : List[Node], copy_list :List[node_types]=[], state : str = "START") -> List[node_types]:
+        if len(node_list) == 0:
+            return copy_list
+        if state == "START":
+            head, *tail = node_list
+            copy_list.append(head.visit())
+            state == "MIDDLE"
+        if state == "MIDDLE":
+            head, *tail = node_list
+            copy_list.append(head.visit())
+        return self.visitAl(tail, copy_list, state)
 
-    def visitNode(self, node : Node):
-        return node.value
+    def visitNode(self, node : Node) -> lit_types:
+        copy_node = copy.copy(node)
+        return copy_node.value
 
 
-    def visitVariable(self, node : VariableNode):
-        if node.token_type != enums.token_types.OUT:
-            return node.value.visit()
-        else:
-            return node.value.__repr__()
+    def visitVariable(self, node : VariableNode) -> VariableNode:
+        copy_node = copy.copy(node)
+        return copy_node
 
-    def visitMath(self, node : MathNode):
-        if node.token_type == enums.token_types.ADD:
+    #TODO math, if en condition zijn nu functioneel maar moeten nu anders behandeld worden, overkoepelende functie:
+    def visitMath(self, node : MathNode) -> MathNode:
+        copy_node = copy.copy(node)
+        if copy_node.token_type == enums.token_types.ADD:
             function = lambda x, y:x+y
-        elif node.token_type == enums.token_types.SUB:
+        elif copy_node.token_type == enums.token_types.SUB:
             function = lambda x, y: x-y
-        elif node.token_type == enums.token_types.MUL:
+        elif copy_node.token_type == enums.token_types.MUL:
             function = lambda x, y: x*y
-        elif node.token_type == enums.token_types.DIV:
+        elif copy_node.token_type == enums.token_types.DIV:
             function = lambda x, y: x//y
         
-        if node.rhs.token_type == enums.token_types.VAR:
-            items = [node.value.visit(), node.rhs.value.visit()]
+        if copy_node.rhs.token_type == enums.token_types.VAR:
+            items = [copy_node.value.visit(), copy_node.rhs.value.visit()]
         else:
-            items = [node.value.visit(), node.rhs.visit()]
-
+            items = [copy_node.value.visit(), copy_node.rhs.visit()]
         items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
-        node.value.line_nr = node.line_nr
-        node.value.value = Node(functools.reduce(function, items), node.line_nr, enums.token_types.INT) #HOGERE ORDE FUNCTIE
+        copy_node.value.line_nr = node.line_nr
+        copy_node.value.value = Node(functools.reduce(function, items), node.line_nr, enums.token_types.INT) #HOGERE ORDE FUNCTIE
+        return copy_node
 
-    #TODO FIX IF STATEMENTS
-    def visitCondition(self, node : ConditionNode):
-        if node.token_type == enums.token_types.GREATER:
+    def visitCondition(self, node : ConditionNode) -> bool:
+        copy_node = copy.copy(node)
+        if copy_node.token_type == enums.token_types.GREATER:
             function = lambda x,y: True if x > y else False
-        elif node.token_type == enums.token_types.SMALLER:
+        elif copy_node.token_type == enums.token_types.SMALLER:
             function = lambda x,y: True if x < y else False
-        elif node.token_type == enums.token_types.EQUAL:
+        elif copy_node.token_type == enums.token_types.EQUAL:
             function = lambda x,y: True if x == y else False
-        elif node.token_type == enums.token_types.EQUALGREATER:
+        elif copy_node.token_type == enums.token_types.EQUALGREATER:
             function = lambda x,y: True if x >= y else False
-        elif node.token_type == enums.token_types.EQUALSMALLER:
+        elif copy_node.token_type == enums.token_types.EQUALSMALLER:
             function = lambda x,y: True if x <= y else False
-        elif node.token_type == enums.token_types.NOTEQUAL:
+        elif copy_node.token_type == enums.token_types.NOTEQUAL:
             function = lambda x,y: True if x != y else False
 
-        items = [node.value.visit(), node.condition.visit()]
+        items = [copy_node.value.value.visit(), copy_node.condition.value.visit()]
         if not items[0].isnumeric() and not items[1].isnumeric():
-            if (node.token_type == enums.token_types.EQUAL or
-                node.token_type == enums.token_types.NOTEQUAL):
-                result = functools.reduce(function, items)
+            if (copy_node.token_type == enums.token_types.EQUAL or
+                copy_node.token_type == enums.token_types.NOTEQUAL):
+                result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
                 print(result)
                 return result
         else:
-            items = list(map(lambda x: int(x) if x.isnumeric() else x, items))
-            result = functools.reduce(function, items)
+            items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
+            result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
             return result
 
-    def visitIF(self, node : IfNode):
-        if node.condition.visit() == True:
-            node.value.value = Node(node.new_value, node.line_nr, node.new_value.token_type)
+    def visitIF(self, node : IfNode) -> IfNode:
+        copy_node = copy.copy(node)
+        if copy_node.condition.visit() == True:
+            copy_node.value.value = Node(node.new_value, node.line_nr, node.new_value.token_type)
+        return copy_node
 
             
