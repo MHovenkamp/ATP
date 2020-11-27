@@ -1,3 +1,7 @@
-FROM 19 TO test_var 
-FROM test_var TO test_var + 1
-FROM test_var TO == 19 : "klopt"
+FROM "banaantjes" TO test
+FROM function_1 TO DECLARE
+FROM START TO function_1
+FROM INPUT TO value
+FROM 19 TO test_var
+FROM test_var TO OUTPUT
+FROM END TO function_1

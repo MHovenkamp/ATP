@@ -9,12 +9,12 @@ def main():
         print(value)
     print("---------------------")
     parse = parser.Parser()
-    result = parse.parse(lexed)
-    for item in result:
-        print(item)
+    tree = parse.parse(lexed)
+    for token in tree:
+        print(token)
 
-    visitor = parser.Visitor()
-    tree = visitor.visitAl(result)
+    # visitor = parser.Visitor()
+    # tree = visitor.visitAl(result)
     # for item in tree:
     #     print(item)
 main()

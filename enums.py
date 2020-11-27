@@ -37,5 +37,6 @@ class node_types(Enum):
     MATH = "MATH"
     VAR = "VAR"
     IF = "IF"
+    ERROR = "ERROR"
     CONDITION = "CONDITION"
     FUNCTION = "FUNTION"
