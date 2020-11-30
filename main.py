@@ -13,8 +13,11 @@ def main():
     # for token in tree:
     #     print(token)
 
-    visitor = parser.Visitor()
-    tree = visitor.visitAl(tree)
-    for item in tree:
-        print(item)
+    # visitor = parser.Visitor()
+    # tree = visitor.visitAl(tree)
+    if len(tree) == 1:
+        print(tree)
+    else:
+        for item in tree:
+            print(item)
 main()
