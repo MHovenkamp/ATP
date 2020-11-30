@@ -24,6 +24,9 @@ This language does not have loops or lambda-calculus but does support GO-TO stat
 
 I wil be changing parts of this language to better suit my goal for the exercise without making it extra difficult for myself. 
 ### Chosen changes / different interpretations
+###### Dropped iplementations
+no sending errors to ERR
+no user input with IN
 ###### Syntax:
 ``` 
 FROM x to y 
@@ -37,8 +40,7 @@ FROM INPUT TO value                 // value now holds the input
 FROM value TO OUTPUT                // set output from function
 FROM END TO function_1              // end function block
 
-FROM 1 TO function_1                // give input to function_1
-FROM function_1 TO output_container // get output from function, program continues from here after function is run
+FROM function_1 : 1 TO output_container // get output from function, program continues from here after function is run
 ```
 ###### If statements
 I will also change the way if statements work, in the place of x you put the variable to test and in the place of y the conditions, Following the conditions yup put a ":" followed by what you want the variable changed to if the condition is true

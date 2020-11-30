@@ -27,12 +27,8 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
         temp_list.append(Token(head, enums.token_types.TO))
     elif head == enums.token_types.LINE.name:
         temp_list.append(Token(head, enums.token_types.LINE))
-    elif head == enums.token_types.IN.name:
-        temp_list.append(Token(head, enums.token_types.IN))
     elif head == enums.token_types.OUT.name:
         temp_list.append(Token(head, enums.token_types.OUT))
-    elif head == enums.token_types.ERR.name:
-        temp_list.append(Token(head, enums.token_types.ERR))
     elif head == enums.token_types.OUTPUT.name:
         temp_list.append(Token(head, enums.token_types.OUTPUT))
     elif head == enums.token_types.DECLARE.name:

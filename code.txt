@@ -1,7 +1,8 @@
-FROM "banaantjes" TO test
 FROM function_1 TO DECLARE
 FROM START TO function_1
-FROM INPUT TO value
+FROM INPUT TO input_value
 FROM 19 TO test_var
 FROM test_var TO OUTPUT
 FROM END TO function_1
+FROM function_1 : 1 TO output_value
+FROM output_value TO OUT
