@@ -409,11 +409,16 @@ class Parser(object):
 
                         # check for output assignment
                         elif found_line[3].token_type == enums.token_types.OUTPUT:
-                            temp = self.findAndReturnVar(new_node.variables, found_line[1])
-                            if temp == False:
-                                temp_var = VariableNode(found_line[3].value, Node(found_line[1].value, function_line_nr, found_line[1].token_type), function_line_nr, found_line[1].token_type)
+                            if found_line[1].token_type == enums.token_types.VAR:
+                                temp = self.findAndReturnVar(new_node.variables, found_line[1].value)
+                                if temp != False:
+                                    temp_var = VariableNode(found_line[3].value, temp, function_line_nr, found_line[3].token_type)
+                                else:
+                                    errors.append(Error("var not declared", line_nr))
+                                    remaining_tail = tail[length_line-1:]
+                                    return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors) 
                             else:
-                                temp_var = VariableNode(found_line[3].value, temp, function_line_nr, found_line[1].token_type)
+                                temp_var = VariableNode(found_line[3].value, Node(found_line[1].value, function_line_nr, found_line[1].token_type), function_line_nr, found_line[3].token_type)
                             new_node.commands.append(temp_var)
                             remaining_tail = tail[length_line-1:]
                             return self.parse(remaining_tail, line_nr, found_vars, found_func_names, found_funcs,tree, state, function_line_nr+1, errors=errors)
@@ -684,18 +689,24 @@ class Visitor(object):
             return self.visitAl(tail, copy_list, variables)
         else:
             _, new_variables = head.visit(variables)
+            # print(new_variables)
         return self.visitAl(tail, copy_list, new_variables)
 
     def visitNode(self, node : Node, variables: dict) -> Tuple[lit_types, dict]:
         copy_node = copy.copy(node)
         return copy_node.value, variables
 
+    #TODO zorgen dat je altijd het number van var krijgt in plaats van var object
     def visitVariable(self, node : VariableNode, variables: dict) -> Tuple[VariableNode, dict]:
         copy_node = copy.copy(node)
         variables_copy = copy.copy(variables)
         if copy_node.token_type == enums.token_types.OUT:
             if copy_node.value.token_type == enums.token_types.VAR:
                 printable = variables_copy[copy_node.value.variable_name]
+                print(printable)
+            if copy_node.value.token_type == enums.token_types.FUNCTION:
+                printable = variables_copy[copy_node.value.variable_name]
+                print(printable.values)
             else:
                 print(copy_node.value)
         elif copy_node.token_type == enums.token_types.LINE:
@@ -704,7 +715,6 @@ class Visitor(object):
             return copy_node, variables_copy
         elif copy_node.value.token_type == enums.token_types.FUNCTION:
             function_result, variables_copy = copy_node.value.visit(variables_copy)
-            # print("result: ", function_result)
         else:
             variables_copy[copy_node.variable_name] = copy_node.value
         return copy_node, variables_copy
@@ -787,11 +797,9 @@ class Visitor(object):
         function_variables = {}
         function_variables["INPUT"] = copy_node.input[0]
         new_function_variables = self.visitAl(copy_node.commands, copy_node.commands, function_variables)
-        print("vars ",new_function_variables)
 
         if 'OUTPUT' in new_function_variables:
             result = new_function_variables["OUTPUT"]
-            print(result)
-            variables_copy[copy_node.output[0].variable_name] = new_function_variables["OUTPUT"].visit(new_function_variables)
-            # print("test ", new_function_variables["OUTPUT"])
+
+            variables_copy[copy_node.output[0].variable_name] = result
             return variables_copy[copy_node.output[0].variable_name], variables_copy
