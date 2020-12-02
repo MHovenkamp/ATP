@@ -1,9 +1,4 @@
-FROM function_1 TO DECLARE
-FROM START TO function_1
-FROM INPUT TO value
-FROM 19 TO test_var
-FROM test_var TO test_var2
-FROM test_var2 TO OUTPUT
-FROM END TO function_1
-FROM function_1 : 1 TO output_value
-FROM output_value TO OUT
+FROM 10 TO lhs
+FROM 5 TO rhs
+FROM lhs TO lhs * rhs
+FROM lhs TO OUT
