@@ -226,7 +226,7 @@ class Parser(object):
 
     list_types = TypeVar(Node, VariableNode, MathNode, Error)
     def parse(  self, token_list : List[lexer.Token], line_nr : int = 1, found_vars : List[VariableNode]=[], found_func_names : List[str]=[], 
-                found_funcs : List[FunctionNode]=[], tree : List[list_types] = [], state :enums.parser_states=enums.parser_states.SINGLE, function_line_nr : int = 1, errors : List[Error]=[]) -> List[list_types]:
+                found_funcs : dict = {}, tree : List[list_types] = [], state :enums.parser_states=enums.parser_states.SINGLE, function_line_nr : int = 1, errors : List[Error]=[]) -> List[list_types]:
         """parser function
 
         Args:
@@ -261,6 +261,7 @@ class Parser(object):
         token_type = head.token_type
         if token_type == enums.token_types.FROM:
             found_line = [head] + self.getLine(tail)
+
             # based on length of line start assigning
             length_line = len(found_line)
             if len(found_line) != 6:
@@ -295,7 +296,8 @@ class Parser(object):
                         if check_var == False:
                             var = VariableNode(found_line[3].value, None, line_nr, enums.token_types.DECLARE)
                             tree.append(var)
-                            found_func_names.append(found_line[1].value)
+                            found_funcs[found_line[1].value] = FunctionNode(found_line[1].value, line_nr, [], [], [], [], enums.token_types.FUNCTION)
+                            found_func_names.append(found_line[1].value) #TODO remove niet meer nodig door dict
                             remaining_tail = tail[length_line-1:]
                             return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors)
                         else:
@@ -305,8 +307,8 @@ class Parser(object):
                     
                     #check for function start
                     elif found_line[1].token_type == enums.token_types.START:
-                        if found_line[3].value in found_func_names:
-                            function = FunctionNode(found_line[3].value, line_nr, [], [], [], [] , enums.token_types.FUNCTION)
+                        if found_line[3].value in found_funcs:
+                            function = found_funcs[found_line[3].value]
                             tree.append(function) 
                             state = enums.parser_states.FUNCTION
                             remaining_tail = tail[length_line-1:]
@@ -333,11 +335,12 @@ class Parser(object):
                     
                     #check for function call
                     if found_line[1].value in found_func_names:
-                        func_search = self.findAndReturnFunc(found_funcs, found_line[1].value)
+                        func_search = found_funcs[found_line[1].value]
                         if func_search is not False:
                             func = copy.copy(func_search)
                             if found_line[3].token_type == enums.token_types.INT or found_line[3].token_type == enums.token_types.STRING :
-                                func.input.append(Node(found_line[3].value, line_nr, found_line[3].token_type))
+                                input_node = Node(found_line[3].value, line_nr, found_line[3].token_type)
+                                func.input.append(input_node)
                             elif found_line[3].token_type == enums.token_types.VAR:
                                 temp = self.findAndReturnVar(found_vars, found_line[3].value)
                                 if temp is not False:
@@ -414,7 +417,7 @@ class Parser(object):
                                 if temp != False:
                                     temp_var = VariableNode(found_line[3].value, temp, function_line_nr, found_line[3].token_type)
                                 else:
-                                    errors.append(Error("var not declared", line_nr))
+                                    errors.append(Error("var not declared, in function", line_nr))
                                     remaining_tail = tail[length_line-1:]
                                     return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors) 
                             else:
@@ -428,7 +431,7 @@ class Parser(object):
                             state = enums.parser_states.SINGLE
                             remaining_tail = tail[length_line-1:]
                             tree.pop(-1)
-                            found_funcs.append(new_node)
+                            found_funcs[found_line[3].value] = new_node
                             remaining_tail = tail[length_line-1:]
                             return self.parse(remaining_tail, line_nr, found_vars, found_func_names, found_funcs,tree, state, function_line_nr+1, errors=errors)
 
@@ -457,6 +460,34 @@ class Parser(object):
                             return self.parse(remaining_tail, line_nr, found_vars, found_func_names, found_funcs,tree, state, function_line_nr+1, errors=errors)
 
                     elif length_line == 6:
+
+                        #check for function call
+                        if found_line[1].value in found_func_names:
+                            func_search = found_funcs[found_line[1].value]
+                            if func_search is not False:
+                                func = copy.copy(func_search)
+                                if found_line[3].token_type == enums.token_types.INT or found_line[3].token_type == enums.token_types.STRING :
+                                    func.input.append(Node(found_line[3].value, line_nr, found_line[3].token_type))
+                                elif found_line[3].token_type == enums.token_types.VAR:
+                                    temp = self.findAndReturnVar(new_node.variables, found_line[3].value)
+                                    if temp is not False:
+                                        func.input.append(temp)
+                                    else:
+                                        errors.append(Error("var not declared, in function", line_nr))
+                                        remaining_tail = tail[length_line-1:]
+                                        return self.parse(remaining_tail, line_nr+1, new_node.variables, found_func_names, found_funcs, tree, state, errors=errors)
+
+                                func.output.append(VariableNode(found_line[5].value, Node(None, line_nr, None), line_nr, enums.token_types.VAR))
+                                
+                                var = VariableNode(found_line[5].value, func, line_nr, enums.token_types.VAR)
+                                new_node.commands.append(var)
+                                new_node.variables.append(var)
+                                remaining_tail = tail[length_line-1:]
+                                return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors)
+                            else:
+                                errors.append(Error("function does not exist", line_nr))
+                                remaining_tail = tail[length_line-1:]
+                                return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors)
 
                         # check for math
                         if found_line[1].token_type == enums.token_types.VAR and found_line[3].token_type == enums.token_types.VAR:
@@ -487,6 +518,7 @@ class Parser(object):
                                         remaining_tail = tail[length_line-1:]
                                         return self.parse(remaining_tail, line_nr, found_vars, found_func_names, found_funcs,tree, state, function_line_nr+1, errors=errors)
             
+
             errors.append(Error("SO WRONG I DONT KNOW WHAT YOUR EVEN TRYING", line_nr))
             remaining_tail = tail[length_line-1:]
             return self.parse(remaining_tail, line_nr+1, found_vars, found_func_names, found_funcs, tree, state, errors=errors)
@@ -685,6 +717,8 @@ class Visitor(object):
         head, *tail = node_list
         variables_copy = copy.copy(variables)
 
+        #TODO fix function calls
+
         if head.token_type == enums.token_types.LINE:
             start_line, variables_copy = head.visit(variables_copy, function_body)
             if type(start_line) is Error:
@@ -693,13 +727,12 @@ class Visitor(object):
             if not start_line.isnumeric():
                 error = Error("Line number to jump to not int", head.line_nr)
                 return error
-            if int(start_line) <= len(copy_list):
+            if int(start_line) <= len(tail):
                 start_line = int(start_line) - 1
-                tail = copy.copy(copy_list[int(start_line):])
-                return self.visitAl(tail, copy_list, variables_copy, function_body)
+                tail = copy.copy(tail[int(start_line):])
             else:
-                error = Error("GOTO line statement out of bounds", head.line_nr)
-                return error
+                tail= []
+            return self.visitAl(tail, copy_list, variables_copy, function_body)
         else:
             pos_error, variables_copy = head.visit(variables_copy, function_body)
             if type(pos_error) is Error:
@@ -745,13 +778,29 @@ class Visitor(object):
             return line_number, variables_copy
         elif copy_node.token_type == enums.token_types.DECLARE:
             return copy_node, variables_copy
-        elif copy_node.token_type == enums.token_types.FUNCTION:
-            function_result ,variables_copy = copy_node.value.visit(variables_copy, function_body)
-            if type(function_result) is Error:
-                return function_result, variables_copy
-            return copy_node, variables_copy
-        elif copy_node.token_type == enums.token_types.VAR or copy_node.token_type == enums.token_types.OUTPUT:
-            result, variables_copy = copy_node.value.visit(variables_copy, function_body)
+        elif copy_node.token_type == enums.token_types.VAR:
+            if copy_node.value.token_type == enums.token_types.FUNCTION:
+                function_result ,variables_copy = copy_node.value.visit(variables_copy, function_body)
+                variables_copy[copy_node.value] = function_result
+                return variables_copy[copy_node.value], variables_copy
+            elif copy_node.value.value == "INPUT":
+                input_value = variables_copy["INPUT"]
+                result, variables_copy = input_value.visit(variables_copy, function_body)
+            else:
+                result, variables_copy = copy_node.value.visit(variables_copy, function_body)
+            if type(result) is Error:
+                return result, variables_copy
+            variables_copy[copy_node.variable_name] = result
+            return result, variables_copy
+        elif copy_node.token_type == enums.token_types.OUTPUT:
+            if copy_node.value.token_type == enums.token_types.VAR:
+                variables_copy[copy_node.variable_name] = copy_node.value
+                return copy_node, variables_copy
+            if copy_node.value.value == "INPUT":
+                input_value = variables_copy["INPUT"]
+                result, variables_copy = input_value.visit(variables_copy, function_body) 
+            else:
+                result, variables_copy = copy_node.value.visit(variables_copy, function_body)
             if type(result) is Error:
                 return result, variables_copy
             variables_copy[copy_node.variable_name] = result
@@ -843,6 +892,7 @@ class Visitor(object):
         if result == True:
             new_value = Node(node.new_value, node.line_nr, node.new_value.token_type)
             if copy_node.value.variable_name in variables_copy:
+                item = variables_copy[copy_node.value.variable_name]
                 variables_copy[copy_node.value.variable_name] = new_value
                 return new_value, variables_copy 
             else:
@@ -855,16 +905,23 @@ class Visitor(object):
         copy_node = copy.copy(node)
         function_variables = {}
 
-        function_variables["INPUT"] = copy_node.input[0]
+        print("ind visitFunction")
+
+
+        input_node = VariableNode("INPUT", Node(copy_node.input[0],copy_node.line_nr, copy_node.input[0].token_type) , copy_node.line_nr, enums.token_types.VAR)
+        function_variables["INPUT"] = input_node
+        copy_node.commands.insert(0,input_node)
         new_function_variables = self.visitAl(copy_node.commands, copy_node.commands, function_variables, function_body)
-        
+
         if type(new_function_variables) is Error:
             return new_function_variables, variables_copy
 
         if 'OUTPUT' in new_function_variables:
             result = new_function_variables["OUTPUT"]
-            variables_copy[copy_node.output[0].variable_name] = result
-            return variables_copy[copy_node.output[0].variable_name], variables_copy
+            result, new_function_variables = result.value.visit(new_function_variables, function_body)
+            result = Node(result, copy_node.line_nr, enums.token_types.OUTPUT)
+            new_node = VariableNode(copy_node.value, result, copy_node.line_nr, result.token_type)
+            return new_node, variables_copy
         else:
             error = Error("No output specified in function", copy_node.line_nr)
             return error, variables_copy

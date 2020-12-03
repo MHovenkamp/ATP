@@ -40,7 +40,7 @@ FROM INPUT TO value                 // value now holds the input
 FROM value TO OUTPUT                // set output from function
 FROM END TO function_1              // end function block
 
-FROM function_1 TO : 1 output_container // get output from function, program continues from here after function is run
+FROM function_1 : 1 TO 1 output_container // get output from function, program continues from here after function is run
 ```
 ###### If statements
 I will also change the way if statements work, in the place of x you put the variable to test and in the place of y the conditions, Following the conditions yup put a ":" followed by what you want the variable changed to if the condition is true

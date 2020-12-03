@@ -1,4 +1,20 @@
-FROM 10 TO lhs
-FROM 5 TO rhs
-FROM lhs TO lhs * rhs
-FROM lhs TO OUT
+FROM bool_odd TO DECLARE
+
+FROM START TO bool_odd
+
+FROM INPUT TO input_value 
+FROM input_value TO == 0 : 1
+FROM input_value TO != 0 : 3
+FROM input_value TO LINE
+
+FROM "IT WORKED" TO result
+FROM 2 TO LINE
+
+FROM "IT DIDNT WORK" TO result
+
+FROM result TO OUTPUT
+FROM END TO bool_odd
+
+FROM bool_odd : 6 TO result_even
+
+FROM result_even TO OUT

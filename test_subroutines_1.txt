@@ -4,11 +4,11 @@ FROM START to bool_odd
 
 FROM INPUT TO input_value 
 FROM input_value TO input_value_safe
-FROM input_value TO == "0" : 9
-FROM input_value TO == "1" : 12
+FROM input_value TO == "0" : 5
+FROM input_value TO == "1" : 7
 
 FROM "false" TO OUTPUT
-FROM 18 TO LINE
+FROM 11 TO LINE
 
 FROM input_value_safe TO input_value_safe + 1
 FROM input_value_safe TO bool_even 
@@ -17,18 +17,16 @@ FROM output_even TO OUTPUT
 
 FROM END TO bool_odd
 
-
-
 FROM bool_even TO DECLARE
 FROM START TO bool_even
 
 FROM INPUT TO input_value 
 FROM input_value TO input_value_safe
-FROM input_value TO == "0" : 30
-FROM input_value TO == "1" : 33
+FROM input_value TO == "0" : 5
+FROM input_value TO == "1" : 7
 
 FROM "true" TO OUTPUT
-FROM 38 TO LINE
+FROM 11 TO LINE
 
 FROM input_value_safe TO input_value_safe + 1
 FROM input_value_safe TO bool_odd
@@ -38,15 +36,8 @@ FROM output_odd TO OUTPUT
 FROM END TO bool_even
 
 
-
-FROM IN to bool_even_input_call
-FROM IN to bool_odd_input_call
-
-
-FROM bool_even_input_call TO bool_even
-FROM bool_even TO output_even
-FROM bool_odd_input_call TO bool_odd
-FROM bool_odd TO output_odd
+FROM bool_even : 5 TO output_even
+FROM bool_odd : 30 TO output_odd
 
 FROM output_even TO OUT
 FROM output_odd TO OUT
