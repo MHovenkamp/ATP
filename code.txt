@@ -1,20 +1,34 @@
 FROM bool_odd TO DECLARE
+FROM silly_print TO DECLARE
 
 FROM START TO bool_odd
 
 FROM INPUT TO input_value 
-FROM input_value TO == 0 : 1
-FROM input_value TO != 0 : 3
+FROM input_value TO == 0 : 4
+FROM input_value TO LINE
+FROM INPUT TO input_value 
+FROM input_value TO != 0 : 6
 FROM input_value TO LINE
 
-FROM "IT WORKED" TO result
+FROM silly_print : "banana" TO result
 FROM 2 TO LINE
 
-FROM "IT DIDNT WORK" TO result
-
+FROM "Het was niet 0" TO result
 FROM result TO OUTPUT
+
 FROM END TO bool_odd
 
-FROM bool_odd : 6 TO result_even
+
+
+FROM START TO silly_print
+
+FROM INPUT TO silly_input
+FROM silly_input TO OUT
+FROM silly_input TO OUTPUT
+
+FROM END TO silly_print
+
+
+FROM bool_odd : 0 TO result_even
 
 FROM result_even TO OUT
