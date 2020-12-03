@@ -53,9 +53,9 @@ class Node(object):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, variables : dict, function_body : bool) -> lit_types:
+    def visit(self, variables : dict ) -> lit_types:
         visitor = Visitor()
-        return visitor.visitNode(self, variables, function_body)
+        return visitor.visitNode(self, variables)
 
 variable_values = TypeVar(Node)
 class VariableNode(Node):
@@ -83,9 +83,9 @@ class VariableNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self,variables : dict, function_body : bool) -> Node:
+    def visit(self,variables : dict ) -> Node:
         visitor = Visitor()
-        return visitor.visitVariable(self, variables, function_body)
+        return visitor.visitVariable(self, variables)
 
 class MathNode(Node):
     """MathNode class, inherits from Node class
@@ -113,9 +113,9 @@ class MathNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, variables : dict, function_body : bool) -> Node:
+    def visit(self, variables : dict ) -> Node:
         visitor = Visitor()
-        return visitor.visitMath(self, variables, function_body)
+        return visitor.visitMath(self, variables)
 
 class ConditionNode(Node):
     """ConditionNode class, inherits from Node
@@ -143,9 +143,9 @@ class ConditionNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, variables: dict, function_body : bool) -> Node:
+    def visit(self, variables: dict ) -> Node:
         visitor = Visitor()
-        return visitor.visitCondition(self, variables, function_body)
+        return visitor.visitCondition(self, variables)
 
 class IfNode(Node):
     """IfNode class, inherits from Node
@@ -176,9 +176,9 @@ class IfNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, variables : dict, function_body : bool) -> Node:
+    def visit(self, variables : dict ) -> Node:
         visitor = Visitor()
-        return visitor.visitIF(self, variables, function_body)
+        return visitor.visitIF(self, variables)
 
 
 #TODO visitor
@@ -216,9 +216,9 @@ class FunctionNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, variables : dict, function_body : bool):
+    def visit(self, variables : dict ):
         visitor = Visitor()
-        return visitor.visitFunction(self, variables, function_body)
+        return visitor.visitFunction(self, variables)
 
 class Parser(object):
     def __init__(self):
@@ -710,7 +710,7 @@ class Visitor(object):
 
     #test met testroutines
     node_types = TypeVar(Node, VariableNode, MathNode, ConditionNode, IfNode)
-    def visitAl(self, node_list : List[Node], copy_list :List[node_types], variables : dict={}, function_body : bool=False) -> Union[Error,dict]:
+    def visitAl(self, node_list : List[Node], copy_list :List[node_types], variables : dict={}) -> Union[Error,dict]:
         
         if len(node_list) == 0:
             return variables
@@ -719,7 +719,7 @@ class Visitor(object):
 
         #TODO fix function calls
         if head.token_type == enums.token_types.LINE:
-            start_line, variables_copy = head.visit(variables_copy, function_body)
+            start_line, variables_copy = head.visit(variables_copy)
             if type(start_line) is Error:
                 return start_line
             start_line = str(start_line)
@@ -733,19 +733,19 @@ class Visitor(object):
                 tail = copy.copy(tail[1:])
             else:
                 tail= []
-            return self.visitAl(tail, copy_list, variables_copy, function_body)
+            return self.visitAl(tail, copy_list, variables_copy)
         else:
-            pos_error, variables_copy = head.visit(variables_copy, function_body)
+            pos_error, variables_copy = head.visit(variables_copy)
             if type(pos_error) is Error:
                 return pos_error
-        return self.visitAl(tail, copy_list, variables_copy, function_body)
+        return self.visitAl(tail, copy_list, variables_copy)
         
 
-    def visitNode(self, node : Node, variables: dict, function_body : bool ) -> Tuple[Union[Error,lit_types], dict]:
+    def visitNode(self, node : Node, variables: dict  ) -> Tuple[Union[Error,lit_types], dict]:
         copy_node = copy.copy(node)
         return copy_node.value, variables
 
-    def visitVariable(self, node : Node, variables: dict, function_body : bool ) -> Tuple[Union[Error,node_types], dict]:
+    def visitVariable(self, node : Node, variables: dict  ) -> Tuple[Union[Error,node_types], dict]:
         copy_node = copy.copy(node)
         variables_copy = copy.copy(variables)
 
@@ -767,12 +767,12 @@ class Visitor(object):
                 node_value = variables_copy[copy_node.value.variable_name]
                 # node_value is nu str "0" had een node moeten zijn die de value str "0" bevat.
                 variables_copy[copy_node.variable_name] = node_value
-                node_value, variables_copy = node_value.visit(variables_copy, function_body)
+                node_value, variables_copy = node_value.visit(variables_copy)
                 return node_value, variables_copy
 
 
             elif copy_node.value.token_type == enums.token_types.FUNCTION:
-                function_result, variables_copy = copy_node.value.visit(variables_copy, True)
+                function_result, variables_copy = copy_node.value.visit(variables_copy)
                 variables_copy[copy_node.variable_name] = function_result
                 return function_result, variables_copy
             elif copy_node.value.token_type == enums.token_types.INPUT:
@@ -792,32 +792,29 @@ class Visitor(object):
         elif copy_node.token_type == enums.token_types.OUT:
             if copy_node.value.token_type == enums.token_types.VAR:
                 printable = variables_copy[copy_node.value.variable_name]
-                printable, variables_copy = printable.visit(variables_copy, function_body)
+                printable, variables_copy = printable.visit(variables_copy)
                 if type(printable) is Error:
                     return printable, variables_copy
             else:
-                printable, variables_copy = copy_node.value.visit(variables_copy, function_body)
+                printable, variables_copy = copy_node.value.visit(variables_copy)
                 if type(printable) is Error:
                     return printable, variables_copy
-            if function_body is False:
-                print(printable)
-                return printable, variables_copy
-            else:
-                return printable, variables_copy 
+            print(printable)
+            return printable, variables_copy
 
         elif copy_node.token_type == enums.token_types.LINE:
             if copy_node.value.token_type == enums.token_types.VAR:
                 node_value = variables_copy[copy_node.value.variable_name]
-                line_number, variables_copy = node_value.visit(variables_copy, function_body)
+                line_number, variables_copy = node_value.visit(variables_copy)
             else:
-                line_number, variables_copy = copy_node.value.visit(variables_copy, function_body)
+                line_number, variables_copy = copy_node.value.visit(variables_copy)
             return line_number, variables_copy # returned echte ints, geen nodes
 
         elif copy_node.token_type == enums.token_types.DECLARE:
             return copy_node, variables_copy
 
 
-    def visitMath(self, node : MathNode, variables: dict, function_body : bool) -> Tuple[Union[Error,int], dict]:
+    def visitMath(self, node : MathNode, variables: dict ) -> Tuple[Union[Error,int], dict]:
         copy_node = copy.copy(node)
         variables_copy = copy.copy(variables)
         if copy_node.token_type == enums.token_types.ADD:
@@ -833,15 +830,15 @@ class Visitor(object):
             return error, variables_copy
         
         if copy_node.rhs.token_type == enums.token_types.VAR:
-            item_1, _ = copy_node.value.visit(variables_copy, function_body)
-            item_2 ,_ = copy_node.rhs.visit(variables_copy, function_body)
+            item_1, _ = copy_node.value.visit(variables_copy)
+            item_2 ,_ = copy_node.rhs.visit(variables_copy)
             if type(item_1) is Error or type(item_2) is Error:
                 error = Error("error in math variables", copy_node.line_nr)
                 return error, variables_copy
             items = [item_1, item_2]
         else:
-            item_1, _ = copy_node.value.visit(variables_copy, function_body)
-            item_2, _ = copy_node.rhs.visit(variables_copy, function_body)
+            item_1, _ = copy_node.value.visit(variables_copy)
+            item_2, _ = copy_node.rhs.visit(variables_copy)
             if type(item_1) is Error or type(item_2) is Error:
                 error = Error("error in math variables", copy_node.line_nr)
                 return error, variables_copy
@@ -856,7 +853,7 @@ class Visitor(object):
             error = Error("Math statement on unknown variable", copy_node.line_nr)
             return error, variables_copy
 
-    def visitCondition(self, node : ConditionNode, variables: dict, function_body : bool) -> Tuple[Union[Error, bool], dict]:
+    def visitCondition(self, node : ConditionNode, variables: dict ) -> Tuple[Union[Error, bool], dict]:
         copy_node = copy.copy(node)
         variables_copy = copy.copy(variables)
         if copy_node.token_type == enums.token_types.GREATER:
@@ -877,15 +874,15 @@ class Visitor(object):
 
         if copy_node.value.token_type == enums.token_types.VAR:
             item_1 = variables_copy[copy_node.value.variable_name]
-            item_1, variables_copy = item_1.visit(variables_copy, function_body)
+            item_1, variables_copy = item_1.visit(variables_copy)
         else:
-            item_1, variables_copy = copy_node.value.visit(variables_copy, function_body)
+            item_1, variables_copy = copy_node.value.visit(variables_copy)
         
         if copy_node.condition.token_type == enums.token_types.VAR:
             item_2 = variables_copy[copy_node.condition.variable_name]
-            item_2, variables_copy = item_2.visit(variables_copy, function_body)
+            item_2, variables_copy = item_2.visit(variables_copy)
         else: 
-            item_2, variables_copy = copy_node.condition.visit(variables_copy, function_body)
+            item_2, variables_copy = copy_node.condition.visit(variables_copy)
 
         items = [str(item_1), str(item_2)]
         if not items[0].isnumeric() and not items[1].isnumeric():
@@ -898,10 +895,10 @@ class Visitor(object):
             result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
             return result, variables_copy
 
-    def visitIF(self, node : IfNode, variables: dict, function_body : bool) -> Tuple[Union[Error,lit_types], dict]:
+    def visitIF(self, node : IfNode, variables: dict ) -> Tuple[Union[Error,lit_types], dict]:
         variables_copy = copy.copy(variables)
         copy_node = copy.copy(node)
-        result, variables_copy = copy_node.condition.visit(variables_copy, function_body)
+        result, variables_copy = copy_node.condition.visit(variables_copy)
         if result == True:
             if copy_node.value.variable_name in variables_copy:
                 variables_copy[copy_node.value.variable_name] = copy_node.new_value
@@ -911,7 +908,7 @@ class Visitor(object):
                 return error, variables_copy  
         return copy_node.value, variables_copy
 
-    def visitFunction(self, node : FunctionNode, variables: dict, function_body : bool) -> Tuple[Union[Error, VariableNode], dict]:
+    def visitFunction(self, node : FunctionNode, variables: dict ) -> Tuple[Union[Error, VariableNode], dict]:
         variables_copy = copy.copy(variables)
         copy_node = copy.copy(node)
         function_variables = {}
@@ -919,7 +916,7 @@ class Visitor(object):
         input_node = VariableNode("INPUT", copy_node.input[0], copy_node.line_nr, enums.token_types.VAR, enums.node_types.VAR)
         copy_node.commands.insert(0,input_node)
 
-        new_function_variables = self.visitAl(copy_node.commands, copy_node.commands, function_variables, function_body)
+        new_function_variables = self.visitAl(copy_node.commands, copy_node.commands, function_variables)
         
         if type(new_function_variables) is Error:
             return new_function_variables, variables_copy
