@@ -150,7 +150,7 @@ unsigned int sommig(unsigned int n){
         result += n;
         n--;
     }
-    returnresult;
+    return result;
 }
 ```
 ###### FROM HERE TO THERE

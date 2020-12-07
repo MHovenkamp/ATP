@@ -1,23 +1,40 @@
-FROM test_func TO DECLARE
-FROM test_func2 TO DECLARE
+FROM bool_odd TO DECLARE
+FROM bool_even TO DECLARE
 
-FROM START TO test_func
+FROM START TO bool_odd
 
-FROM INPUT TO print_statement
-FROM print_statement TO OUT
-FROM print_statement TO == "banaan" : "appel"
-FROM test_func2 : print_statement TO output2
-FROM output2 TO OUTPUT
+FROM INPUT TO input_value
+FROM input_value TO == 0 : 6 ELSE 1
+FROM input_value TO LINE
 
-FROM END TO test_func
+FROM INPUT TO input_value2
+FROM input_value2 TO input_value2 + 1
+FROM bool_even : input_value2 TO even_result
+FROM even_result TO result
+FROM 2 TO LINE
 
-FROM START TO test_func2
+FROM "False" TO result
 
-FROM INPUT TO print_statement2
-FROM print_statement2 TO OUT
-FROM print_statement2 TO OUTPUT
+FROM result TO OUTPUT
+FROM END TO bool_odd
 
-FROM END TO test_func2
 
-FROM test_func : "banaan" TO output1
-FROM output1 TO OUT
+FROM START TO bool_even
+
+FROM INPUT TO input_value
+FROM input_value TO == 0 : 6 ELSE 1
+FROM input_value TO LINE
+
+FROM INPUT TO input_value2
+FROM input_value2 TO input_value2 + 1
+FROM bool_odd : input_value2 TO odd_result
+FROM odd_result TO result
+FROM 2 TO LINE
+
+FROM "True" TO result
+
+FROM result TO OUTPUT
+FROM END TO bool_even
+
+FROM bool_even : 13 TO mega_result
+FROM mega_result TO OUT

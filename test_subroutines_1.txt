@@ -4,8 +4,7 @@ FROM bool_even TO DECLARE
 FROM START TO bool_odd
 
 FROM INPUT TO input_value
-FROM input_value TO == 0 : 6
-FROM input_value TO != 0 : 1
+FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
 FROM INPUT TO input_value2
@@ -23,8 +22,7 @@ FROM END TO bool_odd
 FROM START TO bool_even
 
 FROM INPUT TO input_value
-FROM input_value TO == 0 : 6
-FROM input_value TO != 0 : 1
+FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
 FROM INPUT TO input_value2
@@ -38,5 +36,5 @@ FROM "True" TO result
 FROM result TO OUTPUT
 FROM END TO bool_even
 
-FROM bool_even : 5 TO mega_result
+FROM bool_even : 13 TO mega_result
 FROM mega_result TO OUT

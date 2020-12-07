@@ -6,7 +6,7 @@ def main():
     lexed = lexer.lexen("code.txt")
     parse = parser.Parser()
     tree, found_funcs = parse.parse(lexed)
-    print(found_funcs)
+    # print(found_funcs)
     # for item in tree:
     #     print(item)
 
@@ -14,7 +14,7 @@ def main():
         print(tree[0])
     else:
         visitor = parser.Visitor()
-        tree = visitor.visitAl(tree, found_funcs=found_funcs)
+        tree = visitor.visitAl(tree, tree, found_funcs=found_funcs)
         if type(tree) is parser.Error:
             print(tree)
 main()

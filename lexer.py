@@ -39,6 +39,8 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
         temp_list.append(Token(head, enums.token_types.START))
     elif head == enums.token_types.END.name:
         temp_list.append(Token(head, enums.token_types.END))
+    elif head == enums.token_types.ELSE.name:
+        temp_list.append(Token(head, enums.token_types.ELSE))
     elif head == "+":
         temp_list.append(Token(head, enums.token_types.SUB))
     elif head == "-":
@@ -49,21 +51,25 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
         temp_list.append(Token(head, enums.token_types.MUL))
     elif head.isnumeric():
         temp_list.append(Token(head, enums.token_types.INT))
+    elif "-" in head:
+        just_number = head.lstrip("-")
+        if just_number.isnumeric():
+            temp_list.append(Token(head, enums.token_types.INT))
     elif head == ":":
         temp_list.append(Token(head, enums.token_types.IF))
     elif "\"" in head:
         temp_list.append(Token(head, enums.token_types.STRING))
-    elif "<" in head:
+    elif head == enums.token_types.SMALLER.value:
         temp_list.append(Token(head, enums.token_types.SMALLER))
-    elif ">" in head:
+    elif head == enums.token_types.GREATER.value:
         temp_list.append(Token(head, enums.token_types.GREATER))
-    elif "==" in head:
+    elif head == enums.token_types.EQUAL.value:
         temp_list.append(Token(head, enums.token_types.EQUAL))
-    elif "!=" in head:
+    elif head == enums.token_types.NOTEQUAL.value:
         temp_list.append(Token(head, enums.token_types.NOTEQUAL))
-    elif "<=" in head:
+    elif head == enums.token_types.EQUALSMALLER.value:
         temp_list.append(Token(head, enums.token_types.EQUALSMALLER))
-    elif ">=" in head:
+    elif head == enums.token_types.EQUALGREATER.value:
         temp_list.append(Token(head, enums.token_types.EQUALGREATER))
     else:
         temp_list.append(Token(head, enums.token_types.VAR))
