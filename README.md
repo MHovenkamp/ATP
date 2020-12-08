@@ -24,9 +24,30 @@ This language does not have loops or lambda-calculus but does support GO-TO stat
 
 I wil be changing parts of this language to better suit my goal for the exercise without making it extra difficult for myself. 
 ### Chosen changes / different interpretations
-###### Dropped iplementations
+###### Dropped implementations
 no sending errors to ERR
 no user input with IN
+
+### exercise checkbox
+
+Class inheritence: Al node classes, example -> MathNode inherits from node : parser.py line 90
+Object printing for each class -> yes
+Decorator -> function definition: parser.py line 719, used: parser.py line 832
+Type-annotattion -> Haskell in comments : No, in python function decleration : Yes
+Higher functions:
+    - parser.py 865
+    - parser.py 923
+    - parser.py 929
+
+- multiple function per file
+- function parameters can be given to interpreter by placing them in the code
+- functions can call other functions, see Double recursive function
+- function results can be printed to the terminal by assigning them to a variable and assigning that to OUT
+
+could haves:
+- error handling : Error class defined Parser.py line 10
+
+
 ###### Syntax:
 ``` 
 FROM x to y 
@@ -45,7 +66,7 @@ FROM function_1 : 1 TO 1 output_container // get output from function, program c
 ###### If statements
 I will also change the way if statements work, in the place of x you put the variable to test and in the place of y the conditions, Following the conditions yup put a ":" followed by what you want the variable changed to if the condition is true
 ```
-FROM variable TO operator condition : new value      
+FROM variable TO operator condition : new value_true ELSE new_value_false   
 ```
 The condition can be a string, int, float. The new value can be any value assignable to a variable.
 
@@ -88,58 +109,47 @@ bool even(unsigned intn) {
 ```
 ###### FROM HERE TO THERE
 ```
-// ---------- bool_odd function----------
 FROM bool_odd TO DECLARE
-FROM START to bool_odd
-
-FROM INPUT TO input_value // input_value now contains input
-FROM input_value TO input_value_safe
-FROM input_value TO == "0" : 9
-FROM input_value TO == "1" : 12
-
-FROM "false" TO OUTPUT
-FROM 18 TO LINE
-
-FROM input_value_safe TO input_value_safe + 1
-FROM input_value_safe TO bool_even // give value to bool_even function
-FROM bool_even TO output_even // get output bool_even function
-FROM output_even TO OUTPUT
-
-FROM END TO bool_odd
-// ---------- bool_odd function----------
-
-// ----------bool_even function----------
 FROM bool_even TO DECLARE
+
+FROM START TO bool_odd
+
+FROM INPUT TO input_value
+FROM input_value TO == 0 : 6 ELSE 1
+FROM input_value TO LINE
+
+FROM INPUT TO input_value2
+FROM input_value2 TO input_value2 + 1
+FROM bool_even : input_value2 TO even_result
+FROM even_result TO result
+FROM 2 TO LINE
+
+FROM "False" TO result
+
+FROM result TO OUTPUT
+FROM END TO bool_odd
+
+
 FROM START TO bool_even
 
-FROM INPUT TO input_value // input_value now contains input
-FROM input_value TO input_value_safe
-FROM input_value TO == "0" : 30
-FROM input_value TO == "1" : 33
+FROM INPUT TO input_value
+FROM input_value TO == 0 : 6 ELSE 1
+FROM input_value TO LINE
 
-FROM "true" TO OUTPUT
-FROM 38 TO LINE
+FROM INPUT TO input_value2
+FROM input_value2 TO input_value2 + 1
+FROM bool_odd : input_value2 TO odd_result
+FROM odd_result TO result
+FROM 2 TO LINE
 
-FROM input_value_safe TO input_value_safe + 1
-FROM input_value_safe TO bool_odd
-FROM bool_odd TO output_odd
-FROM output_odd TO OUTPUT
+FROM "True" TO result
 
+FROM result TO OUTPUT
 FROM END TO bool_even
-// ---------- bool_even function----------
 
-// Input
-FROM IN to bool_even_input_call
-FROM IN to bool_odd_input_call
+FROM bool_even : 13 TO mega_result
+FROM mega_result TO OUT
 
-// call functions
-FROM bool_even_input_call TO bool_even
-FROM bool_even TO output_even
-FROM bool_odd_input_call TO bool_odd
-FROM bool_odd TO output_odd
-
-FROM output_even TO OUT
-FROM output_odd TO OUT
 ```
 ##### A loopy function
 ###### pseudocode
@@ -156,18 +166,22 @@ unsigned int sommig(unsigned int n){
 ###### FROM HERE TO THERE
 ```
 FROM sommig TO DECLARE
+
 FROM START TO sommig
+
 FROM INPUT TO n
 FROM 0 TO result
-// start while loop
-FROM n TO < 1 : 12 // end loop
-FROM n TO >= 1 : 8 // start loop
-FROM n TO LINE
+FROM n TO if
+FROM if TO >= 1 : 1 ELSE 4
+FROM if TO LINE
 FROM result TO result - n
 FROM n TO n + 1
-FROM 6 TO LINE //end loop, restart
+FROM -5 TO LINE
 
-FROM result TO OUT 
+FROM result TO OUTPUT
 
 FROM END TO sommig
+
+FROM sommig : 4 TO result
+FROM result TO OUT
 ```

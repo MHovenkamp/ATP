@@ -925,7 +925,6 @@ class Visitor(object):
             else:
                 error = Error("cant use operator on string variables", copy_node.line_nr)
                 return Error, variables_copy
-        # items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
         elif type(items[0]) == int and type(items[1]) == int:
             result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
             return result, variables_copy
