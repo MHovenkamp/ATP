@@ -719,7 +719,6 @@ class Visitor(object):
     def divide(self, lhs : int, rhs: int):
         return lhs / rhs
 
-    #TODO werkt nog niet met laatste testsubroutine, probleem ligt in het optellen en aftrekken met variablelen
     node_types = TypeVar(Node, VariableNode, MathNode, ConditionNode, IfNode)
     def visitAl(self, node_list : List[Node], node_list_copy : List[Node], variables : dict={}, found_funcs : dict = {}) -> Union[Error,dict]:
 
@@ -728,7 +727,6 @@ class Visitor(object):
         head, *tail = node_list
         variables_copy = copy.copy(variables)
 
-        #TODO fix function calls,blijft maar loopen
         if head.token_type == enums.token_types.LINE:
             start_line, variables_copy = head.visit(variables_copy, found_funcs)
             if type(start_line) is Error:
@@ -770,8 +768,6 @@ class Visitor(object):
 
         if copy_node.token_type == enums.token_types.VAR or copy_node.token_type == enums.token_types.OUTPUT:
             
-            print(copy_node)
-            print(copy_node.token_type, copy_node.value.token_type)
             if copy_node.value.value == "INPUT":
                 input_node = variables_copy["INPUT"]
                 variables_copy[copy_node.variable_name] = input_node
@@ -837,34 +833,38 @@ class Visitor(object):
         else:
             error = Error("unknown operator in Math statement", copy_node.line_nr)
             return error, variables_copy
-        
-        # copy_node.value = variables_copy[copy_node.value.variable_name]
+
         if copy_node.rhs.token_type == enums.token_types.VAR:
-            print("is var")
-            var = variables_copy[copy_node.value.variable_name]
-            item_1, _ = var.visit(variables_copy, found_funcs)
-            item_2 ,_ = copy_node.rhs.visit(variables_copy, found_funcs)
+            item_2 = variables_copy[copy_node.rhs.variable_name]
             item_2, variables_copy = item_2.visit(variables_copy, found_funcs)
-            if type(item_1) is Error or type(item_2) is Error:
-                error = Error("error in math variables", copy_node.line_nr)
-                return error, variables_copy
-            items = [str(item_1), str(item_2)]
         else:
-            var = variables_copy[copy_node.value.variable_name]
-            item_1, _ = var.visit(variables_copy, found_funcs)
-            item_2, _ = copy_node.rhs.visit(variables_copy, found_funcs)
-            if type(item_1) is Error or type(item_2) is Error:
-                error = Error("error in math variables", copy_node.line_nr)
-                return error, variables_copy
-            items = [str(item_1), item_2]
+            item_2, variables_copy = copy_node.rhs.visit(variables_copy, found_funcs)
+        
+        if copy_node.value.token_type == enums.token_types.VAR:
+            item_1 = variables_copy[copy_node.value.variable_name]
+            item_1, variables_copy = item_1.visit(variables_copy, found_funcs)
+        else: 
+            item_1, variables_copy = copy_node.value.visit(variables_copy, found_funcs)
 
+        items = [str(item_1), str(item_2)]
+        if items[0].isnumeric():
+            items[0] = int(items[0])
+        if items[1].isnumeric():
+            items[1] = int(items[1])
+        if type(items[0]) == str:
+            if "-" in items[0]:
+                just_number = items[0].lstrip("-")
+                if just_number.isnumeric():
+                    items[0] = int("-" + just_number)
+        if type(items[1]) == str:
+            if "-" in items[1]:
+                just_number2 = items[1].lstrip("-")
+                if just_number2.isnumeric():
+                    items[1] = int("-" + just_number2)
 
-        print(items)
-        items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
         new_value = Node(functools.reduce(function, items), node.line_nr, enums.token_types.INT) #HOGERE ORDE FUNCTIE
         if copy_node.value.variable_name in variables_copy:
             variables_copy[copy_node.value.variable_name] = new_value
-            print(variables_copy[copy_node.value.variable_name])
             return new_value, variables_copy
         else:
             error = Error("Math statement on unknown variable", copy_node.line_nr)
@@ -902,20 +902,43 @@ class Visitor(object):
             item_2, variables_copy = copy_node.condition.visit(variables_copy, found_funcs)
 
         items = [str(item_1), str(item_2)]
-        if not items[0].isnumeric() and not items[1].isnumeric():
+        if items[0].isnumeric():
+            items[0] = int(items[0])
+        if items[1].isnumeric():
+            items[1] = int(items[1])
+        if type(items[0]) == str:
+            if "-" in items[0]:
+                just_number = items[0].lstrip("-")
+                if just_number.isnumeric():
+                    items[0] = int("-" + just_number)
+        if type(items[1]) == str:
+            if "-" in items[1]:
+                just_number2 = items[1].lstrip("-")
+                if just_number2.isnumeric():
+                    items[1] = int("-" + just_number2)
+
+        if type(items[0]) == str and type(items[1]) == str:
             if (copy_node.token_type == enums.token_types.EQUAL or
                 copy_node.token_type == enums.token_types.NOTEQUAL):
                 result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
                 return result, variables_copy
-        else:
-            items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
+            else:
+                error = Error("cant use operator on string variables", copy_node.line_nr)
+                return Error, variables_copy
+        # items = list(map(lambda x: int(x) if x.isnumeric() else x, items)) #HOGERE ORDE FUNCTIE
+        elif type(items[0]) == int and type(items[1]) == int:
             result = functools.reduce(function, items) #HOGERE ORDE FUNCTIE
             return result, variables_copy
+        else:
+            error = Error("cant compare variables of different type", copy_node.line_nr)
+            return error, variables_copy
 
     def visitIF(self, node : IfNode, variables: dict , found_funcs : dict = {}) -> Tuple[Union[Error,lit_types], dict]:
         variables_copy = copy.copy(variables)
         copy_node = copy.copy(node)
         result, variables_copy = copy_node.condition.visit(variables_copy, found_funcs)
+        if result is Error:
+            return result, variables_copy
         if result == True:
             if copy_node.value.variable_name in variables_copy:
                 variables_copy[copy_node.value.variable_name] = copy_node.new_value_true

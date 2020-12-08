@@ -1,40 +1,19 @@
-FROM bool_odd TO DECLARE
-FROM bool_even TO DECLARE
+FROM sommig TO DECLARE
 
-FROM START TO bool_odd
+FROM START TO sommig
 
-FROM INPUT TO input_value
-FROM input_value TO == 0 : 6 ELSE 1
-FROM input_value TO LINE
-
-FROM INPUT TO input_value2
-FROM input_value2 TO input_value2 + 1
-FROM bool_even : input_value2 TO even_result
-FROM even_result TO result
-FROM 2 TO LINE
-
-FROM "False" TO result
+FROM INPUT TO n
+FROM 0 TO result
+FROM n TO if
+FROM if TO >= 1 : 1 ELSE 4
+FROM if TO LINE
+FROM result TO result - n
+FROM n TO n + 1
+FROM -5 TO LINE
 
 FROM result TO OUTPUT
-FROM END TO bool_odd
 
+FROM END TO sommig
 
-FROM START TO bool_even
-
-FROM INPUT TO input_value
-FROM input_value TO == 0 : 6 ELSE 1
-FROM input_value TO LINE
-
-FROM INPUT TO input_value2
-FROM input_value2 TO input_value2 + 1
-FROM bool_odd : input_value2 TO odd_result
-FROM odd_result TO result
-FROM 2 TO LINE
-
-FROM "True" TO result
-
-FROM result TO OUTPUT
-FROM END TO bool_even
-
-FROM bool_even : 13 TO mega_result
-FROM mega_result TO OUT
+FROM sommig : 5 TO result
+FROM result TO OUT
