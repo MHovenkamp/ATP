@@ -22,57 +22,57 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
     head, *tail = seperate_words
     temp_list = []
     if head == enums.token_types.FROM.name:
-        temp_list.append(Token(head, enums.token_types.FROM))
+        temp_list += [[Token(head, enums.token_types.FROM)]
     elif head == enums.token_types.TO.name:
-        temp_list.append(Token(head, enums.token_types.TO))
+        temp_list += [Token(head, enums.token_types.TO)]
     elif head == enums.token_types.LINE.name:
-        temp_list.append(Token(head, enums.token_types.LINE))
+        temp_list += [Token(head, enums.token_types.LINE)]
     elif head == enums.token_types.OUT.name:
-        temp_list.append(Token(head, enums.token_types.OUT))
+        temp_list += [Token(head, enums.token_types.OUT)]
     elif head == enums.token_types.OUTPUT.name:
-        temp_list.append(Token(head, enums.token_types.OUTPUT))
+        temp_list += [Token(head, enums.token_types.OUTPUT)]
     elif head == enums.token_types.DECLARE.name:
-        temp_list.append(Token(head, enums.token_types.DECLARE))
+        temp_list += [Token(head, enums.token_types.DECLARE)]
     elif head == enums.token_types.INPUT.name:
-        temp_list.append(Token(head, enums.token_types.INPUT))
+        temp_list += [Token(head, enums.token_types.INPUT)]
     elif head == enums.token_types.START.name:
-        temp_list.append(Token(head, enums.token_types.START))
+        temp_list += [Token(head, enums.token_types.START)]
     elif head == enums.token_types.END.name:
-        temp_list.append(Token(head, enums.token_types.END))
+        temp_list += [Token(head, enums.token_types.END)]
     elif head == enums.token_types.ELSE.name:
-        temp_list.append(Token(head, enums.token_types.ELSE))
+        temp_list += [Token(head, enums.token_types.ELSE)]
     elif head == "+":
-        temp_list.append(Token(head, enums.token_types.SUB))
+        temp_list += [Token(head, enums.token_types.SUB)]
     elif head == "-":
-        temp_list.append(Token(head, enums.token_types.ADD))
+        temp_list += [Token(head, enums.token_types.ADD)]
     elif head == "*":
-        temp_list.append(Token(head, enums.token_types.DIV))
+        temp_list += [Token(head, enums.token_types.DIV)]
     elif head == "/":
-        temp_list.append(Token(head, enums.token_types.MUL))
+        temp_list += [Token(head, enums.token_types.MUL)]
     elif head.isnumeric():
-        temp_list.append(Token(head, enums.token_types.INT))
+        temp_list += [Token(head, enums.token_types.INT)]
     elif "-" in head:
         just_number = head.lstrip("-")
         if just_number.isnumeric():
-            temp_list.append(Token(head, enums.token_types.INT))
+            temp_list += [Token(head, enums.token_types.INT)]
     elif head == ":":
-        temp_list.append(Token(head, enums.token_types.IF))
+        temp_list += [Token(head, enums.token_types.IF)]
     elif "\"" in head:
-        temp_list.append(Token(head, enums.token_types.STRING))
+        temp_list += [Token(head, enums.token_types.STRING)]
     elif head == enums.token_types.SMALLER.value:
-        temp_list.append(Token(head, enums.token_types.SMALLER))
+        temp_list += [Token(head, enums.token_types.SMALLER)]
     elif head == enums.token_types.GREATER.value:
-        temp_list.append(Token(head, enums.token_types.GREATER))
+        temp_list += [Token(head, enums.token_types.GREATER)]
     elif head == enums.token_types.EQUAL.value:
-        temp_list.append(Token(head, enums.token_types.EQUAL))
+        temp_list += [Token(head, enums.token_types.EQUAL)]
     elif head == enums.token_types.NOTEQUAL.value:
-        temp_list.append(Token(head, enums.token_types.NOTEQUAL))
+        temp_list += [Token(head, enums.token_types.NOTEQUAL)]
     elif head == enums.token_types.EQUALSMALLER.value:
-        temp_list.append(Token(head, enums.token_types.EQUALSMALLER))
+        temp_list += [Token(head, enums.token_types.EQUALSMALLER)]
     elif head == enums.token_types.EQUALGREATER.value:
-        temp_list.append(Token(head, enums.token_types.EQUALGREATER))
+        temp_list += [Token(head, enums.token_types.EQUALGREATER)]
     else:
-        temp_list.append(Token(head, enums.token_types.VAR))
+        temp_list += [Token(head, enums.token_types.VAR)]
 
     return temp_list + lexCreateTokens(tail)
 
