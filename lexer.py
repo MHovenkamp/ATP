@@ -16,13 +16,14 @@ class Token(object):
     def __repr__(self) ->str:
         return self.__str__()
 
+# lexCreateTokens :: List[str] -> List[Token]
 def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
     if len(seperate_words) == 0:
         return []
     head, *tail = seperate_words
     temp_list = []
     if head == enums.token_types.FROM.name:
-        temp_list += [[Token(head, enums.token_types.FROM)]
+        temp_list += [Token(head, enums.token_types.FROM)]
     elif head == enums.token_types.TO.name:
         temp_list += [Token(head, enums.token_types.TO)]
     elif head == enums.token_types.LINE.name:
@@ -76,7 +77,8 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
 
     return temp_list + lexCreateTokens(tail)
 
-def lexen(code_file_name) -> List[Token]:
+# lexen :: str -> List[Token]
+def lexen(code_file_name : str) -> List[Token]:
     code = open(code_file_name, "r")
     code_text = code.read()
     seperate_words = code_text.split()
@@ -84,7 +86,8 @@ def lexen(code_file_name) -> List[Token]:
     tokens = lexCreateTokens(seperate_words)
     return tokens
 
-def findStrings(word_list : List[str], string :str="", state="START") -> List[str]:
+# findStrings :: List[str], str, str -> List[str]
+def findStrings(word_list : List[str], string :str="", state : str="START") -> List[str]:
     if len(word_list) == 0:
         return word_list
     head, *tail = word_list
