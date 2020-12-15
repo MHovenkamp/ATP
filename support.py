@@ -189,7 +189,6 @@ class IfNode(Node):
 dif_nodes = TypeVar(Node, MathNode, IfNode, VariableNode)
 class FunctionNode(Node):
     """FunctionNode class, inherits from Node"""    
-    # value = function name
     def __init__(self, value : Node, line_nr : int, commands: List[dif_nodes]=[], variables: List[VariableNode]=[], token_type : enums.token_types=enums.token_types.FUNCTION, node_type : enums.node_types.FUNCTION=enums.node_types.FUNCTION):
         """__init__ for FunctionNode
 
@@ -261,6 +260,8 @@ class Visitor(object):
             start_line, variables_copy = head.visit(variables_copy, found_funcs)
             if type(start_line) is Error:
                 return start_line
+            if start_line is Node:
+                start_line, variables_copy = start_line.visit(variables_copy, found_funcs)
             start_line = str(start_line)
             if not start_line.isnumeric():
                 just_number = start_line.lstrip("-")
@@ -298,7 +299,6 @@ class Visitor(object):
         variables_copy = copy.deepcopy(variables)
 
         if copy_node.token_type == enums.token_types.VAR or copy_node.token_type == enums.token_types.OUTPUT:
-            
             if copy_node.value.value == "INPUT":
                 input_node = variables_copy["INPUT"]
                 variables_copy[copy_node.variable_name] = input_node
@@ -322,7 +322,6 @@ class Visitor(object):
                 else:
                     value = copy_node.value
                 variables_copy[copy_node.variable_name] = value
-
                 return value, variables_copy
 
         elif copy_node.token_type == enums.token_types.OUT:
@@ -342,12 +341,20 @@ class Visitor(object):
             if copy_node.value.token_type == enums.token_types.VAR:
                 node_value = variables_copy[copy_node.value.variable_name]
                 line_number, variables_copy = node_value.visit(variables_copy, found_funcs)
+                if type(line_number) is VariableNode:
+                    if line_number.token_type == enums.token_types.VAR:
+                        line_number, variables_copy = line_number.value.visit(variables_copy, found_funcs)
             else:
                 line_number, variables_copy = copy_node.value.visit(variables_copy, found_funcs)
             return line_number, variables_copy # returned echte ints, geen nodes
 
+        elif copy_node.token_type == enums.token_types.ERR:
+            error = Error(copy_node.value, copy_node.line_nr)
+            return error, variables_copy
+
         elif copy_node.token_type == enums.token_types.DECLARE:
             return copy_node, variables_copy
+
 
     # visitMath :: Node, dict, dict -> Tuple[Union[Error,int], dict]
     def visitMath(self, node : MathNode, variables: dict , found_funcs : dict = {}) -> Tuple[Union[Error,int], dict]:

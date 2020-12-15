@@ -37,4 +37,6 @@ FROM result TO OUTPUT
 FROM END TO bool_even
 
 FROM bool_even : 13 TO mega_result
+FROM bool_odd : 13 TO mega_result2
 FROM mega_result TO OUT
+FROM mega_result2 TO OUT

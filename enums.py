@@ -4,6 +4,7 @@ class token_types(Enum):
     FROM = "FROM"
     TO = "TO"
     LINE = "LINE"
+    ERR = "ERR"
     OUT = "OUT"
     OUTPUT = "OUTPUT"
     DECLARE = "DECLARE"

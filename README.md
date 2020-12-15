@@ -25,15 +25,14 @@ This language does not have loops or lambda-calculus but does support GO-TO stat
 I wil be changing parts of this language to better suit my goal for the exercise without making it extra difficult for myself. 
 ### Chosen changes / different interpretations
 ###### Dropped implementations
-no sending errors to ERR
-no user input with IN
+no user input with IN,  al inputs into functions must be places in the code
 
 ### exercise checkbox
 
-Class inheritence: Al node classes, example -> MathNode inherits from node : parser.py line 90
+Class inheritance: Al node classes, example -> MathNode inherits from node : parser.py line 90
 Object printing for each class -> yes
 Decorator -> function definition: parser.py line 719, used: parser.py line 832
-Type-annotattion -> Haskell in comments : No, in python function decleration : Yes
+Type-annotation -> Haskell in comments : Yes, in python function declaration : Yes
 Higher functions:
     - parser.py 865
     - parser.py 923
@@ -61,8 +60,15 @@ FROM INPUT TO value                 // value now holds the input
 FROM value TO OUTPUT                // set output from function
 FROM END TO function_1              // end function block
 
-FROM function_1 : 1 TO 1 output_container // get output from function, program continues from here after function is run
+FROM function_1 : 1 TO output_container // get output from function, program continues from here after function is run.
 ```
+
+###### GOTO statements
+``` FROM 2 TO LINE 
+```
+Goto statments can be used to jump trough your code. Then amount of lines you jump from the line statement can only be as long as your code. Functions have their own inner line number count.
+Empty lines are not counted.
+
 ###### If statements
 I will also change the way if statements work, in the place of x you put the variable to test and in the place of y the conditions, Following the conditions yup put a ":" followed by what you want the variable changed to if the condition is true
 ```
@@ -79,16 +85,18 @@ The condition can be a string, int, float. The new value can be any value assign
 | <= | variable is smaller or equal to |
 | >= | variable is bigger or equal to |
 
+##### maximum recursion
+If you create a function that loops forever you wil get a python maximum recursion depth error.
 
 ##### Example Truth_machine
 ```
-FROM IN TO n    // Assign input to variable n
-FROM n TO == "0" : 6   // if n == 0 then n is set to 6
-FROM n TO == "1" : 4   // if n == 1 then n is set to 4
-FROM n TO LINE  // jump to line n, 6 or 4
-FROM 1 TO OUT   // print 1 to terminal
-FROM 4 TO LINE  // loop back to line 4, restart loop
-FROM 0 TO OUT   // print 0 to terminal, terminate program
+FROM 1 TO n
+FROM n TO == 0 : 3 ELSE n
+FROM n TO == 1 : 1 ELSE n
+FROM n TO LINE 
+FROM 1 TO OUT   
+FROM -1 TO LINE 
+FROM 0 TO OUT   
 ```
 
 #### Test subroutines
@@ -149,6 +157,7 @@ FROM END TO bool_even
 
 FROM bool_even : 13 TO mega_result
 FROM mega_result TO OUT
+
 
 ```
 ##### A loopy function

@@ -76,7 +76,12 @@ class Parser(object):
                         tree += [var]
                         remaining_tail = tail[length_line-1:]
                         return self.parse(remaining_tail, line_nr+1, found_vars, found_funcs, tree, state, errors=errors)
-
+                    #check for Error
+                    if found_line[3].token_type == enums.token_types.ERR:
+                        var = support.VariableNode(found_line[3].value, found_line[1].value, line_nr, enums.token_types.ERR)
+                        tree += [var]
+                        remaining_tail = tail[length_line-1:]
+                        return self.parse(remaining_tail, line_nr+1, found_vars, found_funcs, tree, state, errors=errors)
 
                     #check for function decleration 
                     elif found_line[3].token_type == enums.token_types.DECLARE:
@@ -234,6 +239,13 @@ class Parser(object):
                             remaining_tail = tail[length_line-1:]
                             return self.parse(remaining_tail, line_nr, found_vars, found_funcs, tree, state, function_line_nr+1, errors=errors)
 
+                        #check for Error
+                        elif found_line[3].token_type == enums.token_types.ERR:
+                            var = support.VariableNode(found_line[3].value, found_line[1].value, line_nr, enums.token_types.ERR)
+                            new_node.commands += [var]
+                            remaining_tail = tail[length_line-1:]
+                            return self.parse(remaining_tail, line_nr, found_vars, found_funcs, tree, state, function_line_nr+1, errors=errors)
+
                         # check for variable assignement
                         elif found_line[3].token_type == enums.token_types.VAR or found_line[3].token_type == enums.token_types.OUT:
                             var, errors = self.getVarNode(found_line, new_node.variables, function_line_nr)
@@ -305,7 +317,6 @@ class Parser(object):
                                         remaining_tail = tail[length_line-1:]
                                         return self.parse(remaining_tail, line_nr, found_vars, found_funcs,tree, state, function_line_nr+1, errors=errors)
             
-
             errors += [support.Error("SO WRONG I DONT KNOW WHAT YOUR EVEN TRYING", line_nr)]
             remaining_tail = tail[length_line-1:]
             return self.parse(remaining_tail, line_nr+1, found_vars, found_funcs, tree, state, errors=errors)

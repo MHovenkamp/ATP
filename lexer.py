@@ -38,6 +38,8 @@ def lexCreateTokens(seperate_words : List[str]) -> List[Token]:
         temp_list += [Token(head, enums.token_types.INPUT)]
     elif head == enums.token_types.START.name:
         temp_list += [Token(head, enums.token_types.START)]
+    elif head == enums.token_types.ERR.name:
+        temp_list += [Token(head, enums.token_types.ERR)]
     elif head == enums.token_types.END.name:
         temp_list += [Token(head, enums.token_types.END)]
     elif head == enums.token_types.ELSE.name:
