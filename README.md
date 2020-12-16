@@ -29,11 +29,11 @@ no user input with IN,  al inputs into functions must be places in the code
 
 ### exercise checkbox
 
-Class inheritance: Al node classes, example -> MathNode inherits from node : parser.py line 90
-Object printing for each class -> yes
-Decorator -> function definition: parser.py line 719, used: parser.py line 832
-Type-annotation -> Haskell in comments : Yes, in python function declaration : Yes
-Higher functions:
+- Class inheritance: Al node classes, example -> MathNode inherits from node : parser.py line 90
+- Object printing for each class -> yes
+- Decorator -> function definition: parser.py line 719, used: parser.py line 832
+- Type-annotation -> Haskell in comments : Yes, in python function declaration : Yes
+- Higher functions:
     - parser.py 865
     - parser.py 923
     - parser.py 929
