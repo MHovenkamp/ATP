@@ -90,12 +90,12 @@ class VariableNode(Node):
 class MathNode(Node):
     """MathNode class, inherits from Node class
     """    
-    def __init__(self, value : Node, rhs : int, line_nr: int, token_type = enums.token_types, node_type : enums.node_types=enums.node_types.MATH):
+    def __init__(self, value : Node, rhs : Node, line_nr: int, token_type = enums.token_types, node_type : enums.node_types=enums.node_types.MATH):
         """__init__ for MathNode
 
         Args:
             value (Node): lhs, variable to be changed
-            rhs (int): rhs
+            rhs (Node): rhs
             line_nr (int): line number of MathNode
             token_type ([type], optional): token_type, defines the type of operator. Defaults to enums.token_types.
             node_type (enums.node_types, optional): node type. Defaults to enums.node_types.MATH.
@@ -221,7 +221,18 @@ class FunctionNode(Node):
         return visitor.visitFunction(self, input, variables, found_funcs)
 
 class FunctionCall(Node):
+    """FunctionCall class, inherits from Node""" 
     def __init__(self, value : Node, line_nr : int, input : Node, output : VariableNode, token_type : enums.token_types, node_type : enums.node_types= enums.node_types.FUNCTION_CALL):
+        """__init__ for functionCall node
+
+        Args:
+            value (Node): functionNode that holds the function
+            line_nr (int): line number of function call
+            input (Node): input to be put into function
+            output (VariableNode): outputVariable to store function result into
+            token_type (enums.token_types): token type of node
+            node_type (enums.node_types, optional): node type of node. Defaults to enums.node_types.FUNCTION_CALL.
+        """
         super().__init__(value, line_nr, token_type, node_type)
         self.input = input
         self.output = output
