@@ -44,7 +44,10 @@ def main():
     lexed = lexer.lexen(file_name+".txt")
     parse = parser.Parser()
     tree, found_funcs = parse.parse(lexed)
-    # print(tree)
+
+    # for item in tree:
+    #     print(item)
+
     compiled_txt = compile( file_name, tree, found_funcs)
     
     output_path = "/home/cunera/Documents/hu-environment/modules/ATP/code/"

@@ -5,24 +5,24 @@ import copy
 import enums
 import sys
 
-def getByteLengthBase( node: support.Node ) -> int:
-    if node.token_type == enums.token_types.STRING:
-        bytes = len(node.value) - 2 #because the node also contains the ""
-        if bytes % 4 != 0:
-            if bytes < 4:
-                bytes = 4
-            else:
-                bytes = (bytes // 4 ) * 4 + 4
-    elif node.token_type == enums.token_types.INT:
-        bits = int(node.value).bit_length()
-        bytes = bits // 8
-        if bits % 8 != 0:
-            bytes += 1
-        if bytes % 4 != 0:
-            bytes = (bytes // 4) * 4 + 4
-    return bytes
+# def getByteLengthBase( node: support.Node ) -> int:
+#     if node.token_type == enums.token_types.STRING:
+#         bytes = len(node.value) - 2 #because the node also contains the ""
+#         if bytes % 4 != 0:
+#             if bytes < 4:
+#                 bytes = 4
+#             else:
+#                 bytes = (bytes // 4 ) * 4 + 4
+#     elif node.token_type == enums.token_types.INT:
+#         bits = int(node.value).bit_length()
+#         bytes = bits // 8
+#         if bits % 8 != 0:
+#             bytes += 1
+#         if bytes % 4 != 0:
+#             bytes = (bytes // 4) * 4 + 4
+#     return bytes
 
-def getAmountOfVarsBytes( tree: List[support.Node], counter: int = 0 ) -> int:
+def getAmountOfVarsBytes( tree: List[support.Node], counter: int = 0,  ) -> int:
     if len(tree) == 0:
         return counter
 
@@ -31,10 +31,11 @@ def getAmountOfVarsBytes( tree: List[support.Node], counter: int = 0 ) -> int:
 
     head, *tail = tree_copy
     if head.token_type == enums.token_types.VAR:
-        counter_copy += getByteLengthBase(head.value)
+        # counter_copy += getByteLengthBase(head.value)
+        counter_copy += 20 # Ik zet de grens op 1 variable op 20 bytes max
     return getAmountOfVarsBytes( tail, counter_copy)
 
-def getNewStackSpotAddress( node: support.Node, variable_memory_adresses : dict ) -> int:
+def getNewStackSpotAddress( variable_memory_adresses : dict ) -> int:
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
 
     values = variable_memory_adresses_copy.values()
@@ -53,7 +54,8 @@ def startAssemblyCode(tree: List[support.Node], file_name : str) -> str:
 
     start_txt += "\n" + file_name + ":"
 
-    start_txt += "\nPUSH {R7,LR}"
+    start_txt += "\nPUSH {R4,R5,R6,R7,LR}"
+    start_txt += "\nMOV R6, SP"
     start_txt += "\nSUB SP, SP, #" + str(amount_of_bytes_to_reserve)        
     start_txt += "\nADD R7, SP, #0"
 
@@ -61,7 +63,8 @@ def startAssemblyCode(tree: List[support.Node], file_name : str) -> str:
 
 def endAssemblyCode(word_List : List[str]) -> str:
     word_List_copy = copy.copy(word_List)
-    end_txt = "\nPOP {R7,PC}"
+    end_txt = "\nMOV SP, R6"
+    end_txt += "\nPOP {R4,R5,R6,R7,PC}"
     end_txt += addWords(word_List_copy)
 
     return end_txt
@@ -83,6 +86,16 @@ def addWords(word_List : List[str], asm_string : str = "") -> str:
 
     return addWords( tail, asm_string_copy)
 
+def printValueBase( node: support.Node, word_List : List[str] ) -> str:
+    value, word_List_copy = compilerBase(node_copy.value, word_List)
+    if node.value.token_type == enums.token_types.STRING:
+        load_into_R0 = "\nLDR R0, " + value
+        print_statement = "\nBL print_word"
+    else:
+        load_into_R0 = "\nMOV R0, " + value
+        print_statement = "\nBL print_number"
+    return load_into_R0 + print_statement
+
 def compilerBase( node: support.Node, word_List : List[str] ) -> str:
     word_List_copy = copy.copy(word_List)
     if node.token_type == enums.token_types.INT:
@@ -90,9 +103,6 @@ def compilerBase( node: support.Node, word_List : List[str] ) -> str:
     elif node.token_type == enums.token_types.STRING:
         word_List_copy.append(node.value[1:-1])
         return "=" + node.value[1:-1], word_List_copy
-
-def printValue( node: support.Node ) -> str:
-    
 
 def compilerVariable( node: support.VariableNode, variable_memory_adresses : dict, word_List : List[str], chosen_register: str = "3" ) -> Tuple[str, dict]:
     # set var into R3, also store in memory if not already stored
@@ -108,35 +118,41 @@ def compilerVariable( node: support.VariableNode, variable_memory_adresses : dic
         assembly_string += load_value
         if node_copy.token_type == enums.token_types.OUT:
             load_into_R0 = "\nMOV R0, R" + chosen_register_copy
-            print_statement = "BL print"
     else: #var not known or OUT
         if node_copy.token_type == enums.token_types.OUT:
             if node_copy.value.node_type == enums.node_types.VAR:
                 load_value = "\nLDR R" + chosen_register_copy + ",[R7, #" + str(variable_memory_adresses_copy[node.value.variable_name][0]) + "]"
-
                 load_into_R0 = "\nMOV R0, R" + chosen_register_copy
-                print_statement = "\nBL print"
-                assembly_string += load_value + load_into_R0 + print_statement
-            elif node_copy.value.node_type == enums.node_types.BASE:
-                value, word_List_copy = compilerBase(node_copy.value, word_List_copy)
-                if node_copy.value.token_type == enums.token_types.STRING:
-                    load_into_R0 = "\nLDR R0, " + value
+                print(node_copy.value)
+                base_type = variable_memory_adresses_copy[node.value.variable_name][2]
+                print(base_type)
+                if base_type == enums.token_types.STRING:
                     print_statement = "\nBL print_word"
                 else:
-                    load_into_R0 = "\nMOV R0, " + value
                     print_statement = "\nBL print_number"
-                assembly_string += load_into_R0 + print_statement
-        else:
-            adress = getNewStackSpotAddress( node_copy, variable_memory_adresses_copy)
-            adress = str(adress)
-            value, word_List_copy = compilerBase(node_copy.value, word_List_copy)
-            if node_copy.value.token_type == enums.token_types.STRING:
-                load_into_R0 = "\nLDR R" + chosen_register_copy + ", " + value
-            else:
-                load_into_R0 = "\nMOV R" + chosen_register_copy + ", " + value
-            store = "\nSTR R" + chosen_register_copy + ",[R7,#" + adress + "]" 
-            assembly_string += load_into_R0 + store
-            variable_memory_adresses_copy[node_copy.variable_name] = [int(adress), getByteLengthBase(node_copy.value)]
+                assembly_string += load_value + load_into_R0 + print_statement
+            elif node_copy.value.node_type == enums.node_types.BASE:
+                assembly_string += printValueBase(node_copy, word_List_copy)
+        else: #var not known
+            if node_copy.value.node_type == enums.node_types.BASE:
+                adress = getNewStackSpotAddress( variable_memory_adresses_copy)
+                adress = str(adress)
+                value, word_List_copy = compilerBase(node_copy.value, word_List_copy)
+                if node_copy.value.token_type == enums.token_types.STRING:
+                    load_into_R0 = "\nLDR R" + chosen_register_copy + ", " + value
+                else:
+                    load_into_R0 = "\nMOV R" + chosen_register_copy + ", " + value
+                store = "\nSTR R" + chosen_register_copy + ",[R7,#" + adress + "]" 
+                assembly_string += load_into_R0 + store
+                variable_memory_adresses_copy[node_copy.variable_name] = [int(adress), 20, node_copy.value.token_type]
+            elif node_copy.value.node_type == enums.node_types.VAR:
+                load_var_value = "\nLDR R" + chosen_register_copy + ",[R7,#" + str(variable_memory_adresses[node.value.variable_name][0]) + "]"
+                new_address = getNewStackSpotAddress(variable_memory_adresses_copy)
+                new_address = str(new_address)
+                restore_under_new_var_name = "\nSTR R" + chosen_register_copy + ",[R7,#" + new_address + "]" 
+                assembly_string += load_var_value + restore_under_new_var_name
+                base_type = variable_memory_adresses[node.value.variable_name][2]
+                variable_memory_adresses_copy[node_copy.variable_name] = [int(new_address), 20, base_type ]
 
     return assembly_string, variable_memory_adresses_copy, word_List_copy
 

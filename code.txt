@@ -1,2 +1,5 @@
-FROM "HELLO000000000000000000" TO print_statement
-FROM print_statement TO OUT
+FROM "HELLO" TO print_statement
+FROM print_statement TO print_statement2
+FROM print_statement2 TO print_statement3
+FROM print_statement3 TO print_statement4
+FROM print_statement2 TO OUT
