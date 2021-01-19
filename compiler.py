@@ -8,17 +8,19 @@ import support
 import compiler_base
 
 list_types = TypeVar(support.Node, support.VariableNode, support.MathNode, support.Error)
-def compile( file_name : str, ast: List[list_types], found_funcs : dict, asm_string : str = "", variable_memory_adresses : dict = {}, available_registers: dict = {"empty":0}):
+def compile( file_name : str, ast: List[list_types], found_funcs : dict, asm_string : str = "", variable_memory_adresses : dict = {}, word_List : List[str] = []):
 
     if len(ast) == 0:
+        asm_string += compiler_base.endAssemblyCode(word_List)
         return asm_string
 
     ast_copy = copy.copy(ast)
     found_funcs_copy = copy.copy(ast)
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
+    word_List_copy = copy.copy(word_List)
 
     if asm_string == "":
-        asm_string_copy = compiler_base.start_assembly_code( ast_copy, file_name)
+        asm_string_copy = compiler_base.startAssemblyCode( ast_copy, file_name)
     else:
         asm_string_copy = copy.copy(asm_string)
 
@@ -27,22 +29,30 @@ def compile( file_name : str, ast: List[list_types], found_funcs : dict, asm_str
     asm_string_copy += "\nline_" + str(head.line_nr) + ":"
 
     if head.node_type == enums.node_types.VAR:
-        string, variable_memory_adresses_copy = compiler_base.compilerVariable(head, variable_memory_adresses_copy)
+        string, variable_memory_adresses_copy, word_List_copy = compiler_base.compilerVariable(head, variable_memory_adresses_copy, word_List_copy)
         asm_string_copy += string
     
     elif head.node_type == enums.node_types.MATH:
-        string, variable_memory_adresses_copy = compiler_base.compilerMath(head, variable_memory_adresses_copy)
+        string, variable_memory_adresses_copy, word_List_copy = compiler_base.compilerMath(head, variable_memory_adresses_copy, word_List_copy)
         asm_string_copy += string
 
-    return compile( file_name, tail, found_funcs_copy, asm_string_copy, variable_memory_adresses_copy)
+    return compile( file_name, tail, found_funcs_copy, asm_string_copy, variable_memory_adresses_copy, word_List_copy)
 
 
 def main():
-    lexed = lexer.lexen("code.txt")
+    file_name = "code"
+    lexed = lexer.lexen(file_name+".txt")
     parse = parser.Parser()
     tree, found_funcs = parse.parse(lexed)
-    print(tree)
-    compiled_txt = compile( "test", tree, found_funcs)
+    # print(tree)
+    compiled_txt = compile( file_name, tree, found_funcs)
+    
+    output_path = "/home/cunera/Documents/hu-environment/modules/ATP/code/"
+    output_file_name = file_name + ".asm"
+    f = open(output_path + output_file_name, "w")
+    f.write(compiled_txt)
+    f.close()
+    
     print(compiled_txt)
 
 

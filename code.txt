@@ -1,3 +1,2 @@
-FROM 1 TO value
-FROM 2 TO value2
-FROM value TO value + value2
+FROM "HELLO000000000000000000" TO print_statement
+FROM print_statement TO OUT
