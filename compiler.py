@@ -36,6 +36,10 @@ def compile( file_name : str, ast: List[list_types], found_funcs : dict, asm_str
         string, variable_memory_adresses_copy, word_List_copy = compiler_base.compilerMath(head, variable_memory_adresses_copy, word_List_copy)
         asm_string_copy += string
 
+    elif head.node_type == enums.node_types.IF:
+        string, variable_memory_adresses_copy, word_List_copy = compiler_base.compilerIf(head, variable_memory_adresses_copy, word_List_copy)
+        asm_string_copy += string
+
     return compile( file_name, tail, found_funcs_copy, asm_string_copy, variable_memory_adresses_copy, word_List_copy)
 
 

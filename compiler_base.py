@@ -63,7 +63,8 @@ def startAssemblyCode(tree: List[support.Node], file_name : str) -> str:
 
 def endAssemblyCode(word_List : List[str]) -> str:
     word_List_copy = copy.copy(word_List)
-    end_txt = "\nMOV SP, R6"
+    end_txt = "\nend_of_program:"
+    end_txt += "\nMOV SP, R6"
     end_txt += "\nPOP {R4,R5,R6,R7,PC}"
     end_txt += addWords(word_List_copy)
 
@@ -81,28 +82,46 @@ def addWords(word_List : List[str], asm_string : str = "") -> str:
 
 
     head, *tail = word_List_copy
-    asm_string_copy += "\n" + head + ":"
-    asm_string_copy += "\t.asciz \"" + head + "\""
+    if " " in head:
+        asm_string_copy += "\n" + head.replace(" ", "_") + ":"
+        asm_string_copy += "\t.asciz \"" + head + "\""
+    else:
+        asm_string_copy += "\n" + head + ":"
+        asm_string_copy += "\t.asciz \"" + head + "\""
 
     return addWords( tail, asm_string_copy)
 
 def printValueBase( node: support.Node, word_List : List[str] ) -> str:
-    value, word_List_copy = compilerBase(node_copy.value, word_List)
-    if node.value.token_type == enums.token_types.STRING:
+    value, word_List_copy, value_type = compilerBase(node.value, word_List)
+    print(word_List_copy)
+    if value_type == enums.token_types.STRING:
         load_into_R0 = "\nLDR R0, " + value
         print_statement = "\nBL print_word"
     else:
         load_into_R0 = "\nMOV R0, " + value
         print_statement = "\nBL print_number"
-    return load_into_R0 + print_statement
+    return load_into_R0 + print_statement, word_List_copy
 
 def compilerBase( node: support.Node, word_List : List[str] ) -> str:
     word_List_copy = copy.copy(word_List)
     if node.token_type == enums.token_types.INT:
-        return "#" + node.value, word_List_copy
+        return "#" + node.value, word_List_copy, enums.token_types.INT
     elif node.token_type == enums.token_types.STRING:
-        word_List_copy.append(node.value[1:-1])
-        return "=" + node.value[1:-1], word_List_copy
+        bare_word = node.value[1:-1]
+        if type(bare_word) == str:
+            if "-" in bare_word:
+                just_number = bare_word.lstrip("-")
+                if just_number.isnumeric():
+                    bare_word = int("-" + just_number)
+                    return "#" + str(bare_word), word_List_copy, enums.token_types.INT
+        if " " in bare_word:
+            without_spaces = bare_word.replace(" ", "_")
+            if without_spaces not in word_List_copy:
+                word_List_copy.append(bare_word)
+                return "=" + without_spaces, word_List_copy, enums.token_types.STRING
+        elif node.value[1:-1] not in word_List_copy:
+            word_List_copy.append(node.value[1:-1])
+        return "=" + node.value[1:-1], word_List_copy, enums.token_types.STRING
 
 def compilerVariable( node: support.VariableNode, variable_memory_adresses : dict, word_List : List[str], chosen_register: str = "3" ) -> Tuple[str, dict]:
     # set var into R3, also store in memory if not already stored
@@ -123,22 +142,28 @@ def compilerVariable( node: support.VariableNode, variable_memory_adresses : dic
             if node_copy.value.node_type == enums.node_types.VAR:
                 load_value = "\nLDR R" + chosen_register_copy + ",[R7, #" + str(variable_memory_adresses_copy[node.value.variable_name][0]) + "]"
                 load_into_R0 = "\nMOV R0, R" + chosen_register_copy
-                print(node_copy.value)
                 base_type = variable_memory_adresses_copy[node.value.variable_name][2]
-                print(base_type)
                 if base_type == enums.token_types.STRING:
                     print_statement = "\nBL print_word"
                 else:
                     print_statement = "\nBL print_number"
                 assembly_string += load_value + load_into_R0 + print_statement
             elif node_copy.value.node_type == enums.node_types.BASE:
-                assembly_string += printValueBase(node_copy, word_List_copy)
+                string, word_List_copy = printValueBase(node_copy, word_List_copy)
+                assembly_string += string
+        elif node_copy.token_type == enums.token_types.ERR:
+            value_without_spaces = node_copy.value[1:-1].replace(" ", "_")
+            load_into_R0 = "\nLDR R0, =" + value_without_spaces
+            word_List_copy.append(node_copy.value[1:-1])
+            print_statement = "\nBL print_word"
+            end_program = "\nB end_of_program"
+            assembly_string += load_into_R0 + print_statement + end_program
         else: #var not known
             if node_copy.value.node_type == enums.node_types.BASE:
                 adress = getNewStackSpotAddress( variable_memory_adresses_copy)
                 adress = str(adress)
-                value, word_List_copy = compilerBase(node_copy.value, word_List_copy)
-                if node_copy.value.token_type == enums.token_types.STRING:
+                value, word_List_copy, value_type = compilerBase(node_copy.value, word_List_copy)
+                if value_type == enums.token_types.STRING:
                     load_into_R0 = "\nLDR R" + chosen_register_copy + ", " + value
                 else:
                     load_into_R0 = "\nMOV R" + chosen_register_copy + ", " + value
@@ -174,9 +199,8 @@ def compilerMath( node: support.MathNode, variable_memory_adresses : dict, word_
         operator = "\nUDIV" 
 
     if node_copy.rhs.node_type == enums.node_types.BASE:
-        if node_copy.rhs.token_type != enums.token_types.STRING:
-        #command
-            value, word_List_copy = compilerBase(node_copy.rhs.value, word_List_copy)
+        value, word_List_copy, value_type = compilerBase(node_copy.rhs.value, word_List_copy)
+        if value_type == enums.token_types.INT:
             command_start += operator + " R3 , R3, " + value
     elif node_copy.rhs.node_type == enums.node_types.VAR:
         #load rhs into R2
@@ -191,6 +215,63 @@ def compilerMath( node: support.MathNode, variable_memory_adresses : dict, word_
     if chosen_register != "3":
         command_start += "\nMOV R" + chosen_register + ", R3"
     return command_start, variable_memory_adresses_copy, word_List_copy
+
+def compilerIf( node: support.IfNode, variable_memory_adresses : dict, word_List : List[str] ) -> str:
+    node_copy = copy.copy( node )
+    condition_node_copy = node_copy.condition
+    variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
+    word_List_copy = copy.copy(word_List)
+
+    if condition_node_copy.token_type == enums.token_types.EQUAL:
+        operator = "\nBEQ"
+    elif condition_node_copy.token_type == enums.token_types.NOTEQUAL:
+        operator = "\nBNE"
+    elif condition_node_copy.token_type == enums.token_types.EQUALGREATER:
+        operator = "\nBGE"
+    elif condition_node_copy.token_type == enums.token_types.EQUALSMALLER:
+        operator = "\nBLE"
+    elif condition_node_copy.token_type == enums.token_types.GREATER:
+        operator = "\nBHI"
+    elif condition_node_copy.token_type == enums.token_types.SMALLER:
+        operator = "\nBLT"
+    load_var1 = "\nLDR R3,[R7,#" + str(variable_memory_adresses[node_copy.value.variable_name][0]) + "]"
+    if condition_node_copy.condition.node_type == enums.node_types.VAR:
+        load_var2 = "\nLDR R3,[R7,#" + str(variable_memory_adresses[condition_node_copy.condition.variable_name][0]) + "]"
+    else:
+        print(condition_node_copy.condition)
+        value, word_List_copy, value_type = compilerBase(condition_node_copy.condition, word_List_copy)
+        if value_type == enums.token_types.STRING:
+            load_var2 = "\nLDR R2, " + value
+        else:
+            load_var2 = "\nMOV R2, " + value
+    compare = "\nCMP R3,R2"
+    action = operator + " line_" + str(node_copy.line_nr) + "_true"
+    if node_copy.new_value_false.node_type == enums.node_types.BASE:
+        value, word_List_copy, value_type = compilerBase(node_copy.new_value_false, word_List_copy)
+        if value_type == enums.token_types.STRING:
+            change_org_var = "\nLDR R3, " + value
+        else:
+            change_org_var = "\nMOV R3, " + value
+    restore_var = "\nSTR R3, [R7,#" + str(variable_memory_adresses_copy[node_copy.value.variable_name][0]) +"]"
+    skip_true = "\nB line_" + str(node_copy.line_nr+1)
+
+    new_line = "\nline_" + str(node_copy.line_nr) + "_true:"
+    if node_copy.new_value_true.node_type == enums.node_types.BASE:
+        value, word_List_copy, value_type = compilerBase(node_copy.new_value_true, word_List_copy)
+        if value_type == enums.token_types.STRING:
+            change_org_var2 = "\nLDR R3, " + value
+        else:
+            change_org_var2 = "\nMOV R3, " + value
+
+    restore_var = "\nSTR R3, [R7,#" + str(variable_memory_adresses_copy[node_copy.value.variable_name][0]) +"]"
+    
+    old_addres = str(variable_memory_adresses_copy[node_copy.value.variable_name][0])
+    variable_memory_adresses_copy[node_copy.value.variable_name] = [old_addres, 20, enums.token_types.STRING]
+
+    asm_string = load_var1 + load_var2 + compare + action + change_org_var + restore_var + skip_true
+    asm_string += new_line + change_org_var2 + restore_var
+
+    return asm_string, variable_memory_adresses_copy, word_List_copy
 
 # def compilerFunction( node : support.FunctionNode, variable_memory_adresses : dict) ->str:
 
