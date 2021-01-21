@@ -1,2 +1,11 @@
-FROM "Je hebt echt kut code gemaakt mate" TO ERR
-FROM "dit moet je niet zien" TO OUT
+FROM test_func TO DECLARE          
+
+FROM START TO test_func            
+FROM INPUT TO value  
+FROM "banaan" TO OUT    
+FROM value TO OUTPUT                
+FROM END TO test_func
+
+
+FROM test_func : 8 TO output_container
+FROM output_container TO OUT
