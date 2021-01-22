@@ -1,11 +1,6 @@
-FROM test_func TO DECLARE          
-
-FROM START TO test_func            
-FROM INPUT TO value  
-FROM "banaan" TO OUT    
-FROM value TO OUTPUT                
-FROM END TO test_func
-
-
-FROM test_func : 8 TO output_container
-FROM output_container TO OUT
+FROM 1 TO line_1
+FROM 2 TO line_2
+FROM line_2 TO OUT
+FROM line_2 TO LINE
+FROM "banaan" TO OUT
+FROM "good" TO OUT

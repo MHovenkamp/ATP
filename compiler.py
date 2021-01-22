@@ -15,6 +15,8 @@ def main():
 
     # for item in tree:
     #     print(item)
+    # print(found_funcs)
+    # print(found_funcs["test_func"].output)
     compiled_txt,mem_,word_list = compiler_base.compile( file_name, tree, found_funcs)
     compiled_txt += compiler_base.endAssemblyCode(word_list)
 

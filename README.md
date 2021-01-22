@@ -62,7 +62,7 @@ FROM END TO function_1              // end function block
 
 FROM function_1 : 1 TO output_container // get output from function, program continues from here after function is run.
 ```
-Er kunnen geen strings aan een functie worden gegeven. 
+A function can only accept and return integers.
 
 ###### GOTO statements
 ``` FROM 2 TO LINE 

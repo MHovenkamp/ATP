@@ -5,76 +5,6 @@ import copy
 import enums
 import sys
 
-# def getByteLengthBase( node: support.Node ) -> int:
-#     if node.token_type == enums.token_types.STRING:
-#         bytes = len(node.value) - 2 #because the node also contains the ""
-#         if bytes % 4 != 0:
-#             if bytes < 4:
-#                 bytes = 4
-#             else:
-#                 bytes = (bytes // 4 ) * 4 + 4
-#     elif node.token_type == enums.token_types.INT:
-#         bits = int(node.value).bit_length()
-#         bytes = bits // 8
-#         if bits % 8 != 0:
-#             bytes += 1
-#         if bytes % 4 != 0:
-#             bytes = (bytes // 4) * 4 + 4
-#     return bytes
-
-list_types = TypeVar(support.Node, support.VariableNode, support.MathNode, support.Error)
-def compile( main_func_name : str, ast: List[list_types], found_funcs : dict, asm_string : str = "", variable_memory_adresses : dict = {}, word_List : List[str] = []):
-
-    if len(ast) == 0:
-        return asm_string, variable_memory_adresses, word_List
-
-    ast_copy = copy.copy(ast)
-    found_funcs_copy = copy.copy(found_funcs)
-    variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
-    word_List_copy = copy.copy(word_List)
-
-    if asm_string == "":
-        asm_string_copy = startAssemblyCode( ast_copy, found_funcs_copy, main_func_name) 
-        asm_string_copy, variable_memory_adresses_copy, word_List_copy =  compileAlFunctions(list(found_funcs.values()), main_func_name, found_funcs_copy, variable_memory_adresses_copy, word_List_copy, asm_string_copy)    
-        asm_string_copy += "\n" + main_func_name + ":"  
-    else:
-        asm_string_copy = copy.copy(asm_string)
-
-    head, *tail = ast_copy
-
-    # print(head)
-    # print(variable_memory_adresses_copy)
-    # print(head.node_type)
-
-
-    asm_string_copy += "\n" + main_func_name + "_line_" + str(head.line_nr) + ":"
-
-    if head.node_type == enums.node_types.VAR:
-        string, variable_memory_adresses_copy, word_List_copy = compilerVariable(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        asm_string_copy += string
-    
-    elif head.node_type == enums.node_types.INPUT:
-        if head.variable_name in variable_memory_adresses_copy.keys():
-            string, variable_memory_adresses_copy, word_List_copy = compilerVariable(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        else:
-            string, variable_memory_adresses_copy, word_List_copy = compilerFunctionInput(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        asm_string_copy += string
-
-    elif head.node_type == enums.node_types.MATH:
-        string, variable_memory_adresses_copy, word_List_copy = compilerMath(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        asm_string_copy += string
-
-    elif head.node_type == enums.node_types.IF:
-        string, variable_memory_adresses_copy, word_List_copy = compilerIf(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        asm_string_copy += string
-
-    elif head.node_type == enums.node_types.FUNCTION_CALL:
-        string, variable_memory_adresses_copy, word_List_copy = compilerFunctionCall(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
-        asm_string_copy += string
-
-    return compile( main_func_name, tail, found_funcs_copy, asm_string_copy, variable_memory_adresses_copy, word_List_copy)
-
-
 def getAmountOfVarsBytes( tree: List[support.Node], found_funcs : dict, counter: int = 0,  ) -> int:
     if len(tree) == 0:
         return counter
@@ -107,12 +37,7 @@ def startAssemblyCode(tree: List[support.Node], found_funcs : dict, file_name : 
     
     start_txt = ".section .text\n.align 4\n.global " + file_name + "\n"
 
-    start_txt += "\nPUSH {R4,R5,R6,R7,LR}"
-    start_txt += "\nMOV R6, SP"
-    start_txt += "\nSUB SP, SP, #" + str(amount_of_bytes_to_reserve)        
-    start_txt += "\nADD R7, SP, #0"
-
-    return start_txt
+    return start_txt, amount_of_bytes_to_reserve
 
 def endAssemblyCode(word_List : List[str]) -> str:
     word_List_copy = copy.copy(word_List)
@@ -155,6 +80,77 @@ def printValueBase( node: support.Node, word_List : List[str] ) -> str:
         print_statement = "\nBL print_number"
     return load_into_R0 + print_statement, word_List_copy
 
+def getFoundFuncsOffsetDict( found_funcs : List[str], main_fileName : str, new_dict : dict = {}, counter : int = 0 ) -> dict:
+    found_funcs_copy = copy.copy(found_funcs)
+    new_dict_copy = copy.copy(new_dict)
+    counter_copy = copy.copy(counter)
+    if len( new_dict_copy ) == 0:
+        new_dict_copy[main_fileName] = counter_copy
+        counter_copy += 100
+
+    if len(found_funcs_copy) == 0:
+        return new_dict
+
+    head, *tail = found_funcs_copy
+    new_dict_copy[head] = counter + 100
+
+    return getFoundFuncsOffsetDict( tail, main_fileName ,new_dict_copy, counter_copy+100)
+
+list_types = TypeVar(support.Node, support.VariableNode, support.MathNode, support.Error)
+def compile( main_func_name : str, ast: List[list_types], found_funcs : dict, asm_string : str = "", variable_memory_adresses : dict = {}, word_List : List[str] = [], func_offset : dict = {}):
+
+    if len(ast) == 0:
+        return asm_string, variable_memory_adresses, word_List
+
+    ast_copy = copy.copy(ast)
+    found_funcs_copy = copy.copy(found_funcs)
+    variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
+    word_List_copy = copy.copy(word_List)
+
+    if asm_string == "":
+        asm_string_copy, amount_of_bytes_to_reserve =  startAssemblyCode( ast_copy, found_funcs_copy, main_func_name) 
+        func_offset = getFoundFuncsOffsetDict( ["code"]+ list(found_funcs.values()), main_func_name )
+        asm_string_copy, variable_memory_adresses_copy, word_List_copy =  compileAlFunctions(list(found_funcs.values()), main_func_name, found_funcs_copy, variable_memory_adresses_copy,func_offset, word_List_copy, asm_string_copy)    
+        asm_string_copy += "\n" + main_func_name + ":"  
+        asm_string_copy += "\nPUSH {R4,R5,R6,R7,LR}"
+        asm_string_copy += "\nMOV R6, SP"
+        asm_string_copy += "\nSUB SP, SP, #" + str(amount_of_bytes_to_reserve)        
+        asm_string_copy += "\nADD R7, SP, #0\n"
+    else:
+        asm_string_copy = copy.copy(asm_string)
+
+    head, *tail = ast_copy
+
+    line_number = func_offset[main_func_name] + head.line_nr
+    asm_string_copy += "\n"+str(line_number)+":"
+
+    if head.node_type == enums.node_types.VAR:
+        string, variable_memory_adresses_copy, word_List_copy = compilerVariable(head, main_func_name, variable_memory_adresses_copy, func_offset, word_List_copy)
+        asm_string_copy += string
+    
+    elif head.node_type == enums.node_types.INPUT:
+        if head.variable_name in variable_memory_adresses_copy.keys():
+            string, variable_memory_adresses_copy, word_List_copy = compilerVariable(head, main_func_name, variable_memory_adresses_copy, func_offset, word_List_copy)
+        else:
+            string, variable_memory_adresses_copy, word_List_copy = compilerFunctionInput(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
+        asm_string_copy += string
+
+    elif head.node_type == enums.node_types.MATH:
+        string, variable_memory_adresses_copy, word_List_copy = compilerMath(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
+        asm_string_copy += string
+
+    elif head.node_type == enums.node_types.IF:
+        string, variable_memory_adresses_copy, word_List_copy = compilerIf(head, main_func_name, variable_memory_adresses_copy, word_List_copy)
+        asm_string_copy += string
+
+    elif head.node_type == enums.node_types.FUNCTION_CALL:
+        string, variable_memory_adresses_copy, word_List_copy = compilerFunctionCall(head, main_func_name, found_funcs, variable_memory_adresses_copy, word_List_copy)
+        asm_string_copy += string
+
+    return compile( main_func_name, tail, found_funcs_copy, asm_string_copy, variable_memory_adresses_copy, word_List_copy, func_offset)
+
+
+
 def compilerBase( node: support.Node, word_List : List[str] ) -> str:
     word_List_copy = copy.copy(word_List)
     if node.token_type == enums.token_types.INT:
@@ -176,7 +172,7 @@ def compilerBase( node: support.Node, word_List : List[str] ) -> str:
             word_List_copy.append(node.value[1:-1])
         return "=" + node.value[1:-1], word_List_copy, enums.token_types.STRING
 
-def compilerVariable( node: support.VariableNode, main_func_name : str, variable_memory_adresses : dict, word_List : List[str], chosen_register: str = "3" ) -> Tuple[str, dict]:
+def compilerVariable( node: support.VariableNode, main_func_name : str, variable_memory_adresses : dict, func_offset : dict, word_List : List[str], chosen_register: str = "3" ) -> Tuple[str, dict]:
     # set var into R3, also store in memory if not already stored
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
     node_copy = copy.copy(node)
@@ -193,7 +189,6 @@ def compilerVariable( node: support.VariableNode, main_func_name : str, variable
             load_into_R0 = "\nMOV R0, R" + chosen_register_copy
     else: #var not known or OUT
         if node_copy.token_type == enums.token_types.OUT:
-            print(node_copy)
             if node_copy.value.node_type == enums.node_types.VAR:
                 load_value = "\nLDR R" + chosen_register_copy + ",[R7, #" + str(variable_memory_adresses_copy[node.value.variable_name][0]) + "]"
                 load_into_R0 = "\nMOV R0, R" + chosen_register_copy
@@ -235,8 +230,21 @@ def compilerVariable( node: support.VariableNode, main_func_name : str, variable
                     load_into_R0 = "\nMOV R" + chosen_register_copy + ", " + value
             assembly_string += load_into_R0
             return assembly_string, variable_memory_adresses_copy, word_List_copy
+        elif node_copy.token_type == enums.token_types.LINE:
+            if node_copy.value.token_type == enums.token_types.INT:
+                branch = "\nB " + main_func_name_copy + "_line_" + str(node_copy.line_nr + int(node_copy.value.value))
+                assembly_string += branch
+                return assembly_string, variable_memory_adresses_copy, word_List_copy
+            elif node_copy.value.token_type == enums.token_types.VAR:
+                load_into_R0 = "\nLDR R0 ,[R7, #" + str(variable_memory_adresses_copy[node.value.variable_name][0]) + "]"
+                load_line_number = "\nADD R1, R0" + ", #" + str(node_copy.line_nr)
+                load_line_number2 = "\nADD R1, R1, #" + str(func_offset[main_func_name_copy])
+                compare =  = " R0, R1" #TODO proberen goto te doen met ene shitload aan compares die kijken welk nummer het
+                getAdress = "\nBL getAdressLabel"
+                branch = "\nBX R0"
+                assembly_string += load_into_R0 + load_line_number + load_line_number2 + move_to_r0 + getAdress +branch
+                return assembly_string, variable_memory_adresses_copy, word_List_copy
         else: #var not known
-            print("is base")
             if node_copy.value.node_type == enums.node_types.BASE:
                 adress = getNewStackSpotAddress( variable_memory_adresses_copy)
                 adress = str(adress)
@@ -259,21 +267,6 @@ def compilerVariable( node: support.VariableNode, main_func_name : str, variable
 
     return assembly_string, variable_memory_adresses_copy, word_List_copy
 
-def compilerFunctionCall( node: support.FunctionCall, main_func_name : str, variable_memory_adresses : dict, word_List : List[str]):
-    # link to function and then put RO value into memory under variabel name
-    node_copy = copy.copy(node)
-    main_func_name_copy = copy.copy(main_func_name)
-    variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
-    word_List_copy = copy.copy(word_List)
-
-    value, word_List_copy, value_type = compilerBase(node_copy.input, word_List_copy)
-    give_input = "\nMOV R0, " + value
-    link_to_function = "\nBL " + node_copy.value 
-    new_address = getNewStackSpotAddress( variable_memory_adresses_copy )
-    save_var_func_result = "\nSTR R0, [R7,#" + str(new_address) + "]"
-    variable_memory_adresses_copy[node_copy.output.variable_name] = [new_address, 20, enums.token_types.STRING]
-    return give_input+link_to_function+save_var_func_result, variable_memory_adresses_copy, word_List_copy
-
 def compilerMath( node: support.MathNode, main_func_name : str, variable_memory_adresses : dict, word_List : List[str], chosen_register: str = "3" ) -> Tuple[str, dict]:
     node_copy = copy.copy(node)
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
@@ -290,7 +283,19 @@ def compilerMath( node: support.MathNode, main_func_name : str, variable_memory_
     elif node_copy.token_type == enums.token_types.MUL:
         operator = "\nMUL"
     elif node_copy.token_type == enums.token_types.DIV:
-        operator = "\nUDIV" 
+        load_into_R0 = "\nLDR R0,[R7,#" + str(variable_memory_adresses[node_copy.value.variable_name][0]) + "]"
+        if node_copy.rhs.node_type == enums.node_types.BASE:
+            value, word_List_copy, value_type =  compilerBase(node_copy.rhs, word_List_copy)
+            if value_type == enums.token_types.STRING:
+                load_into_R1 = "\nLDR R1, " + value
+            else:
+                load_into_R1 = "\nMOV R1, " + value
+        else:
+            load_into_R1 = "\nLDR R1,[R7,#" + str(variable_memory_adresses[node_copy.rhs.variable_name][0]) + "]"
+        link_to_divide = "\nBL divide"
+        restore_Result = "\nSTR R0,[R7,#" + str(variable_memory_adresses[node_copy.value.variable_name][0]) + "]"
+        message = load_into_R0 + load_into_R1 + link_to_divide + restore_Result
+        return message, variable_memory_adresses_copy, word_List_copy
 
     if node_copy.rhs.node_type == enums.node_types.BASE:
         value, word_List_copy, value_type = compilerBase(node_copy.rhs, word_List_copy)
@@ -304,7 +309,7 @@ def compilerMath( node: support.MathNode, main_func_name : str, variable_memory_
     #store new result
     store = "\nSTR R3, [R7,#" + str(variable_memory_adresses_copy[node_copy.value.variable_name][0]) +"]"
     command_start += store
-    variable_memory_adresses_copy[node_copy.value.variable_name][1] = 20
+    variable_memory_adresses_copy[node_copy.value.variable_name][2] = enums.token_types.INT
 
     if chosen_register != "3":
         command_start += "\nMOV R" + chosen_register + ", R3"
@@ -359,7 +364,7 @@ def compilerIf( node: support.IfNode, main_func_name : str, variable_memory_adre
 
     restore_var = "\nSTR R3, [R7,#" + str(variable_memory_adresses_copy[node_copy.value.variable_name][0]) +"]"
     
-    old_addres = str(variable_memory_adresses_copy[node_copy.value.variable_name][0])
+    old_addres = variable_memory_adresses_copy[node_copy.value.variable_name][0]
     variable_memory_adresses_copy[node_copy.value.variable_name] = [old_addres, 20, enums.token_types.STRING]
 
     asm_string = load_var1 + load_var2 + compare + action + change_org_var + restore_var + skip_true
@@ -367,7 +372,24 @@ def compilerIf( node: support.IfNode, main_func_name : str, variable_memory_adre
 
     return asm_string, variable_memory_adresses_copy, word_List_copy
 
-def compileAlFunctions( found_func : List[support.FunctionNode], main_func_name : str, found_funcs : dict, variable_memory_adresses : dict, word_List : List[str], asm_string: str = "" ) -> str:
+def compilerFunctionCall( node: support.FunctionCall, main_func_name : str, found_funcs : dict, variable_memory_adresses : dict, word_List : List[str]):
+    # link to function and then put RO value into memory under variabel name
+    node_copy = copy.copy(node)
+    main_func_name_copy = copy.copy(main_func_name)
+    variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
+    word_List_copy = copy.copy(word_List)
+    found_funcs_copy = copy.copy(found_funcs)
+
+    value, word_List_copy, value_type = compilerBase(node_copy.input, word_List_copy)
+    give_input = "\nMOV R0, " + value
+    link_to_function = "\nBL " + node_copy.value 
+    print(variable_memory_adresses_copy)
+    new_address = getNewStackSpotAddress( variable_memory_adresses_copy )
+    save_var_func_result = "\nSTR R0, [R7,#" + str(new_address) + "]"
+    variable_memory_adresses_copy[node_copy.output.variable_name] = [new_address, 20, enums.token_types.INT]
+    return give_input+link_to_function+save_var_func_result, variable_memory_adresses_copy, word_List_copy
+
+def compileAlFunctions( found_func : List[support.FunctionNode], main_func_name : str, found_funcs : dict, variable_memory_adresses : dict, func_offset :dict, word_List : List[str], asm_string: str = "") -> str:
     found_func_copy = copy.copy(found_func)
     main_func_name_copy = copy.copy(main_func_name)
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
@@ -381,20 +403,20 @@ def compileAlFunctions( found_func : List[support.FunctionNode], main_func_name 
     head, *tail = found_func
     asm_string_copy += "\n\n" + head.value + ":"
     asm_string_copy += "\nPUSH {LR}"
-    add_string, variable_memory_adresses_copy, word_List_copy = compilerFunction(head, head.value, found_funcs_copy, variable_memory_adresses_copy, word_List_copy, asm_string_copy)
+    add_string, variable_memory_adresses_copy, word_List_copy = compilerFunction(head, head.value, found_funcs_copy, variable_memory_adresses_copy, func_offset, word_List_copy, asm_string_copy)
     add_string += "\nPOP {PC}\n"
     # add_string += "\nMOV PC,LR\n"
 
     return compileAlFunctions(tail, main_func_name_copy, found_funcs, variable_memory_adresses_copy, word_List_copy, add_string)
 
-def compilerFunction( node: support.FunctionNode, main_func_name : str, found_funcs: dict, variable_memory_adresses : dict, word_List : List[str], asm_string: str = "") ->str:
+def compilerFunction( node: support.FunctionNode, main_func_name : str, found_funcs: dict, variable_memory_adresses : dict, func_offset : dict, word_List : List[str], asm_string: str = "") ->str:
     node_copy = copy.copy(node)
     main_func_name_copy = copy.copy(main_func_name)
     variable_memory_adresses_copy = copy.copy(variable_memory_adresses)
     word_List_copy = copy.copy(word_List)
     found_funcs_copy = copy.copy(found_funcs)
 
-    string, variable_memory_adresses_copy, word_List_copy =  compile(node_copy.value, node_copy.commands, found_funcs_copy, asm_string, variable_memory_adresses_copy, word_List_copy)
+    string, variable_memory_adresses_copy, word_List_copy =  compile(node_copy.value, node_copy.commands, found_funcs_copy, asm_string, variable_memory_adresses_copy, word_List_copy, func_offset)
 
     return string, variable_memory_adresses_copy, word_List_copy
     
@@ -408,4 +430,4 @@ def compilerFunctionInput(node: support.VariableNode, main_func_name : str, vari
 
     return store_input_value, variable_memory_adresses_copy, word_List_copy
     
-#TODO check divide, goto, functies, zorgen dat je altijd weet welke base soort een variabele heeft
+#TODO goto
