@@ -15,10 +15,15 @@ def main():
 
     # for item in tree:
     #     print(item)
-    # print(found_funcs)
-    # print(found_funcs["test_func"].output)
-    compiled_txt,mem_,word_list = compiler_base.compile( file_name, tree, found_funcs)
-    compiled_txt += compiler_base.endAssemblyCode(word_list)
+
+    # for func in found_funcs.values():
+    #     for item in func.commands:
+    #         print(item)
+
+    compiled_txt,mem_,word_list,line_numbers = compiler_base.compile( file_name, tree, found_funcs)
+    compiled_txt += compiler_base.endAssemblyCode(word_list, line_numbers)
+
+    print(mem_)
 
     output_path = "/home/cunera/Documents/hu-environment/modules/ATP/code/"
     output_file_name = file_name + ".asm"

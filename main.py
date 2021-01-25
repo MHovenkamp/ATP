@@ -4,7 +4,7 @@ import enums
 import support
 
 def main():
-    lexed = lexer.lexen("test_subroutines_1.txt")
+    lexed = lexer.lexen("code.txt")
     parse = parser.Parser()
     tree, found_funcs = parse.parse(lexed)
 

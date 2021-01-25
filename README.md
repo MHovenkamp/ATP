@@ -62,7 +62,7 @@ FROM END TO function_1              // end function block
 
 FROM function_1 : 1 TO output_container // get output from function, program continues from here after function is run.
 ```
-A function can only accept and return integers.
+A function can only accept and return integers. a function input can also not be the direct input from a function from which ts called. you have to transfer the value into a new variable. a function can be no longer than 99 instructions. you can have a max of 2 functions per file minus the "main" 
 
 ###### GOTO statements
 ``` FROM 2 TO LINE 
