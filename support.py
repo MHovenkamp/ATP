@@ -1,4 +1,4 @@
-from typing import List, TypeVar, Union, Tuple
+from typing import List, TypeVar, Union, Tuple, Callable
 import functools
 import operator
 import copy
@@ -252,12 +252,23 @@ class FunctionCall(Node):
         visitor = Visitor()
         return visitor.visitFunctionCall(self, variables, found_funcs)
 
+def smart_divide(func : Callable[[int,int], int]):
+    def inner_divide(lhs,rhs):
+        if lhs == 0:
+            return 0
+        elif rhs == 0:
+            return 0
+        else:
+            return func( lhs,rhs)
+    return inner_divide
+@smart_divide
+def divide(lhs : int, rhs: int):
+    return lhs / rhs
+
 class Visitor(object):
     def __init__(self):
         pass
-    def divide(self, lhs : int, rhs: int):
-        return lhs / rhs
-
+    
     node_types = TypeVar(Node, VariableNode, MathNode, ConditionNode, IfNode)
     # visitAl :: List[Node], List[Node], dict, dict -> Union(Error,dict)
     def visitAl(self, node_list : List[Node], node_list_copy : List[Node], variables : dict={}, found_funcs : dict = {}) -> Union[Error,dict]:
@@ -378,7 +389,7 @@ class Visitor(object):
         elif copy_node.token_type == enums.token_types.MUL:
             function = lambda x, y: x*y
         elif copy_node.token_type == enums.token_types.DIV:
-            function = lambda x, y: self.divide(x,y) # DECORATED
+            function = lambda x, y: divide(x,y) # DECORATED
         else:
             error = Error("unknown operator in Math statement", copy_node.line_nr)
             return error, variables_copy

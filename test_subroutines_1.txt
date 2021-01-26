@@ -4,16 +4,17 @@ FROM bool_even TO DECLARE
 FROM START TO bool_odd
 
 FROM INPUT TO input_value
+FROM input_value TO input_value2
 FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
-FROM INPUT TO input_value2
 FROM input_value2 TO input_value2 + 1
-FROM bool_even : input_value2 TO even_result
+FROM input_value2 TO give_2_function
+FROM bool_even : give_2_function TO even_result
 FROM even_result TO result
 FROM 2 TO LINE
 
-FROM "False" TO result
+FROM 0 TO result
 
 FROM result TO OUTPUT
 FROM END TO bool_odd
@@ -22,16 +23,17 @@ FROM END TO bool_odd
 FROM START TO bool_even
 
 FROM INPUT TO input_value
+FROM input_value TO input_value2
 FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
-FROM INPUT TO input_value2
 FROM input_value2 TO input_value2 + 1
-FROM bool_odd : input_value2 TO odd_result
+FROM input_value2 TO give_2_function
+FROM bool_odd : give_2_function TO odd_result
 FROM odd_result TO result
 FROM 2 TO LINE
 
-FROM "True" TO result
+FROM 1 TO result
 
 FROM result TO OUTPUT
 FROM END TO bool_even

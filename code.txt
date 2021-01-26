@@ -4,14 +4,12 @@ FROM bool_even TO DECLARE
 FROM START TO bool_odd
 
 FROM INPUT TO input_value
-FROM input_value TO OUT
 FROM input_value TO input_value2
 FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
 FROM input_value2 TO input_value2 + 1
 FROM input_value2 TO give_2_function
-FROM give_2_function TO OUT
 FROM bool_even : give_2_function TO even_result
 FROM even_result TO result
 FROM 2 TO LINE
@@ -40,5 +38,5 @@ FROM 1 TO result
 FROM result TO OUTPUT
 FROM END TO bool_even
 
-FROM bool_even : 12 TO mega_result
+FROM bool_even : 13 TO mega_result
 FROM mega_result TO OUT

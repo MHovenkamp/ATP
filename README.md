@@ -29,14 +29,14 @@ no user input with IN,  al inputs into functions must be places in the code
 
 ### exercise checkbox
 
-- Class inheritance: Al node classes, example -> MathNode inherits from node : parser.py line 90
+- Class inheritance: Al node classes, support.py
 - Object printing for each class -> yes
-- Decorator -> function definition: parser.py line 719, used: parser.py line 832
+- Decorator -> function definition: support.py line 259, used: support.py line 394
 - Type-annotation -> Haskell in comments : Yes, in python function declaration : Yes
 - Higher functions:
-    - parser.py 865
-    - parser.py 923
-    - parser.py 929
+    - support.py 427
+    - support.py 485
+    - support.py 491
 
 - multiple function per file
 - function parameters can be given to interpreter by placing them in the code
@@ -44,8 +44,10 @@ no user input with IN,  al inputs into functions must be places in the code
 - function results can be printed to the terminal by assigning them to a variable and assigning that to OUT
 
 could haves:
-- error handling : Error class defined Parser.py line 10
+- error handling : Error class defined support.py line 8
 
+### compiler instructions
+The compiler flashes with the hu environment created by Wouter Van Ooijen. first generate code.asm by calling python compiler.py, then make run.
 
 ###### Syntax:
 ``` 
@@ -124,16 +126,17 @@ FROM bool_even TO DECLARE
 FROM START TO bool_odd
 
 FROM INPUT TO input_value
+FROM input_value TO input_value2
 FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
-FROM INPUT TO input_value2
 FROM input_value2 TO input_value2 + 1
-FROM bool_even : input_value2 TO even_result
+FROM input_value2 TO give_2_function
+FROM bool_even : give_2_function TO even_result
 FROM even_result TO result
 FROM 2 TO LINE
 
-FROM "False" TO result
+FROM 0 TO result
 
 FROM result TO OUTPUT
 FROM END TO bool_odd
@@ -142,23 +145,23 @@ FROM END TO bool_odd
 FROM START TO bool_even
 
 FROM INPUT TO input_value
+FROM input_value TO input_value2
 FROM input_value TO == 0 : 6 ELSE 1
 FROM input_value TO LINE
 
-FROM INPUT TO input_value2
 FROM input_value2 TO input_value2 + 1
-FROM bool_odd : input_value2 TO odd_result
+FROM input_value2 TO give_2_function
+FROM bool_odd : give_2_function TO odd_result
 FROM odd_result TO result
 FROM 2 TO LINE
 
-FROM "True" TO result
+FROM 1 TO result
 
 FROM result TO OUTPUT
 FROM END TO bool_even
 
 FROM bool_even : 13 TO mega_result
 FROM mega_result TO OUT
-
 
 ```
 ##### A loopy function
