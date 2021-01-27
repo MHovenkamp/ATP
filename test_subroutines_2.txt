@@ -14,6 +14,3 @@ FROM -5 TO LINE
 FROM result TO OUTPUT
 
 FROM END TO sommig
-
-FROM sommig : 4 TO result
-FROM result TO OUT

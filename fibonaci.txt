@@ -1,0 +1,23 @@
+FROM fib TO DECLARE
+
+FROM START TO fib
+
+FROM INPUT TO input_value_1
+FROM INPUT TO input_value_2
+FROM INPUT TO input_value_3
+FROM input_value_1 TO <= 1 : 8 ELSE 1
+FROM input_value_1 TO LINE
+
+FROM input_value_2 TO input_value_2 + 1
+FROM fib : input_value_2 TO result1
+FROM input_value_3 TO input_value_3 + 2
+FROM fib : input_value_3 TO result2
+FROM result1 TO result1 - result2
+FROM result1 TO result
+FROM 2 TO LINE
+
+FROM 1 TO result
+
+FROM result TO OUTPUT
+
+FROM END TO fib

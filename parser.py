@@ -51,7 +51,6 @@ class Parser(object):
         if token_type == enums.token_types.FROM:
             found_line = [head] + self.getLine(tail)
             
-
             # based on length of line start assigning
             length_line = len(found_line)
             if len(found_line) != 6:

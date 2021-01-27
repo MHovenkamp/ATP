@@ -1,7 +1,8 @@
 .section .text
 .align 4
-.global code
-
+.global test_subroutines_1
+.global bool_odd
+.global bool_even
 
 bool_odd:
 PUSH {R7,LR}
@@ -107,22 +108,13 @@ ADD SP, SP, #48
 POP {R7, PC}
 
 
-code:
+test_subroutines_1:
 PUSH {R4,R5,R6,R7,LR}
 MOV R6, SP
-SUB SP, SP, #8
+SUB SP, SP, #0
 ADD R7, SP, #0
 _line_1:
 _line_2:
-_line_3:
-MOV R0, #13
-BL bool_even
-MOV R1, R0
-STR R1, [R7,#0]
-_line_4:
-LDR R3,[R7, #0]
-MOV R0, R3
-BL print_number
 B end_of_program
 
 lookUpTable:
@@ -174,10 +166,6 @@ CMP R0, #1
 BEQ _line_1
 CMP R0, #2
 BEQ _line_2
-CMP R0, #3
-BEQ _line_3
-CMP R0, #4
-BEQ _line_4
 BNE end_of_program_error
 
 end_of_program:

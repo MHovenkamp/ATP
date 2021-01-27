@@ -53,7 +53,7 @@ def getNewStackSpotAddress( variable_memory_adresses : dict, name :str ) -> int:
     return new_adress
 
 # startAssemblyCode :: str -> str
-def startAssemblyCode(file_name : str) -> str:
+def startAssemblyCode(file_name : str, found_funcs :List[str], start_txt:str = "") -> str:
     """gives the start code of the assembly code
 
     Args:
@@ -62,10 +62,22 @@ def startAssemblyCode(file_name : str) -> str:
     Returns:
         str: string containing start information assembly
     """
-    
-    start_txt = ".section .text\n.align 4\n.global " + file_name + "\n"
+    found_funcs_copy = copy.copy(found_funcs)
+    start_txt_copy = copy.copy(start_txt)
 
-    return start_txt
+    if len(found_funcs) == 0:
+        return start_txt
+
+    if start_txt == "":
+        start_txt_copy = ".section .text\n.align 4\n.global " + file_name
+    
+    print(type(found_funcs))
+    head, *tail = list(found_funcs_copy)
+    print(head)
+
+    start_txt_copy += "\n.global " + str(head)
+    return startAssemblyCode( file_name, tail, start_txt_copy)
+
 
 # endAssemblyCode :: List[str], List[int] ->
 def endAssemblyCode(word_List : List[str], line_numbers : List[int]) -> str:
